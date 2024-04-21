@@ -33,9 +33,10 @@ async def cmd_test2(message: Message):
         cds = message.text.split('\n')
         # print('\r', cds)
         api_key, secret_key, deposit = cds
-        p1 = Process(target=bybit.start, args=(api_key, secret_key, float(deposit)))
-        p1.start()
+        # p1 = Process(target=bybit.start, args=(api_key, secret_key, float(deposit)))
+        # p1.start()
         # bybit.start(api_key, secret_key, float(deposit))
+        asyncio.create_task(bybit.start(api_key, secret_key, float(deposit)))
         await message.reply("BybBit has been started")
     except BaseException as e:
         print(e)

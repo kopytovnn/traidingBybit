@@ -226,11 +226,12 @@ class Client:
 
     def position_price(self, symbol, positionIdx):
         params = {
-            "symbol": "ETHUSDT",
+            "symbol": symbol,
             "category": "linear",
         }
         resp = self._get('/v5/position/list', params)
         for i in resp['result']['list']:
+            print('\t', i)
             if i['positionIdx'] == positionIdx:
                 return float(i['avgPrice'])
         # return float(resp['result']['list'][positionIdx - 1]['avgPrice'])

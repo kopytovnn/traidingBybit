@@ -334,8 +334,8 @@ class Dispatcher:
         self.cl.switch_position_mode(self.symbol, 3)
         circling = 2
 
-        task1 = asyncio.create_task(self.long_queue_async(circling))
-        task2 = asyncio.create_task(self.short_queue_async(circling))
+        task1 = asyncio.create_task(self.long_loop(circling))
+        task2 = asyncio.create_task(self.short_loop(circling))
 
         await task1
         await task2
