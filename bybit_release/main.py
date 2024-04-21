@@ -4,7 +4,7 @@ from bybit_release.Dispatcher import *
 def start(apikey, secretkey, deposit):
     cl = Client(apikey, secretkey)
 
-    symbol = 'ETHUSDT'
+    symbol = 'XRPUSDT'
     leverage = 20
 
     dp = Dispatcher(cl=cl, symbol=symbol, leverage=leverage, depo=deposit)

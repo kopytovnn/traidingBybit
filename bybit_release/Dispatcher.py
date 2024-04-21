@@ -332,7 +332,7 @@ class Dispatcher:
 
     async def upd_v6(self):
         self.cl.switch_position_mode(self.symbol, 3)
-        circling = 2
+        circling = 0
 
         task1 = asyncio.create_task(self.long_queue_async(circling))
         task2 = asyncio.create_task(self.short_queue_async(circling))
