@@ -9,7 +9,10 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from bingx_w.main import work as bing_x_start
+from multiprocessing import Process
+
+# from bingx_w.main import work as bing_x_start
+from bybit_release import main as bybit
 
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "6437889245:AAFqZXpbh9iu4tvl9fNIu1QvEbjWa6cWkKA"
@@ -20,7 +23,7 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    await message.answer(f"""Отправьте сообщение в формате:\napi-key\nsecret_key\nторгуемая пара (например SOL-USDT)\n leverage (например 20) """)
+    await message.answer(f"""Отправьте сообщение в формате:\napikey\nsecretkey\ndeposit""")
 
 
 @dp.message()
@@ -29,10 +32,11 @@ async def cmd_test2(message: Message):
         # print(message.text)
         cds = message.text.split('\n')
         # print('\r', cds)
-        api_key, secret_key, symbol, leverage = cds
-        print(api_key, secret_key, symbol, leverage)
-        await bing_x_start(api_key, secret_key, symbol, int(leverage))
-        await message.reply("BingX has been started")
+        api_key, secret_key, deposit = cds
+        p1 = Process(target=bybit.start, args=(api_key, secret_key, float(deposit)))
+        p1.start()
+        # bybit.start(api_key, secret_key, float(deposit))
+        await message.reply("BybBit has been started")
     except BaseException as e:
         print(e)
         await message.reply("Ошибка")
