@@ -120,7 +120,7 @@ class Dispatcher:
                 return
 
             lo_info = self.cl.order_price(averaging_long['orderId'])
-            price = self.cl.kline_price(self.symbol)['price']
+            # price = self.cl.kline_price(self.symbol)['price']
             long_status = lo_info['orderStatus']
             if long_status == 'Filled':
                 position_price = self.cl.position_price(self.symbol, 1)
@@ -162,7 +162,7 @@ class Dispatcher:
                 return
 
             so_info = self.cl.order_price(averaging_short['orderId'])
-            price = self.cl.kline_price(self.symbol)['price']
+            # price = self.cl.kline_price(self.symbol)['price']
             short_status = so_info['orderStatus']
             if short_status == 'Filled':
                 position_price = self.cl.position_price(self.symbol, 1)
