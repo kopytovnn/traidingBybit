@@ -1,3 +1,4 @@
+import asyncio
 from typing import Text
 from aiogram import Dispatcher, types
 from aiogram import Router, F
@@ -7,6 +8,8 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, ReplyKeyboardRemove
 
 from app.keyboards.simple_row import make_row_keyboard
+
+from fix.bybit_release.main import start as bybit_start
 
 
 router = Router()
@@ -27,7 +30,7 @@ async def bybit_auth_start(message: types.Message, state: FSMContext):
 
 @router.message(BybitAuthData.waiting_for_apikey)
 async def bybit_apikey_chosen(message: types.Message, state: FSMContext):
-    await state.update_data(apikey=message.text.lower())
+    await state.update_data(apikey=message.text)
 
     await state.set_state(BybitAuthData.waiting_for_secretkey.state)
     await message.answer("Теперь введите secretkey")
@@ -35,7 +38,7 @@ async def bybit_apikey_chosen(message: types.Message, state: FSMContext):
 
 @router.message(BybitAuthData.waiting_for_secretkey)
 async def bybit_secretkey_chosen(message: types.Message, state: FSMContext):
-    await state.update_data(secretkey=message.text.lower())
+    await state.update_data(secretkey=message.text)
 
     await state.set_state(BybitAuthData.waiting_for_symbol.state)
     await message.answer("Введите торговую пару", reply_markup=make_row_keyboard(['XRP', 'SOL', 'ETH', 'NEAR']))
@@ -43,7 +46,7 @@ async def bybit_secretkey_chosen(message: types.Message, state: FSMContext):
 
 @router.message(BybitAuthData.waiting_for_symbol)
 async def bybit_symbol_chosen(message: types.Message, state: FSMContext):
-    await state.update_data(symbol=message.text.lower())
+    await state.update_data(symbol=message.text)
 
     await state.set_state(BybitAuthData.waiting_for_deposit.state)
     await message.answer("Введите желаемый депозит в usdt")
@@ -54,9 +57,11 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
     await state.update_data(deposit=message.text.lower())
 
     user_data = await state.get_data()
-    print(user_data)
-
     
+    apikey, secretkey, symbol, deposit = user_data.values()
+    asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
+
+    await message.reply("BybBit has been started")    
 
 
 def register_handlers_bybit_auth(dp: Dispatcher):
