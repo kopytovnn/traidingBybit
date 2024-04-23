@@ -59,7 +59,7 @@ class Dispatcher:
         value_usdt = self.depo * percents * 0.01
         if self.market_price['status']:
             value_coin = value_usdt / self.market_price['price']
-            return round(value_coin, 1)
+            return value_coin
         return
 
     def simple_market_buy(self, qty):
