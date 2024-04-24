@@ -243,7 +243,7 @@ class Client:
         }
 
         resp = self._postOrder('/v5/order/cancel', params)
-        # print(resp)
+        print(resp)
 
 
 # apikey = config.API_KEY
