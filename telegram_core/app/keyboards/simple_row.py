@@ -1,4 +1,5 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from app.keyboards.buttons import *
 
 
 def make_row_keyboard(items: list[str]) -> ReplyKeyboardMarkup:
@@ -9,3 +10,10 @@ def make_row_keyboard(items: list[str]) -> ReplyKeyboardMarkup:
     """
     row = [KeyboardButton(text=item) for item in items]
     return ReplyKeyboardMarkup(keyboard=[row], resize_keyboard=True)
+
+
+def make_inline_keyboard(items: list[str]) -> InlineKeyboardMarkup:
+    row = [[COIN(i) for i in items[0: 4]],
+           [COIN(i) for i in items[4: 8]],
+           [COIN(i) for i in items[8: 12]],]
+    return InlineKeyboardMarkup(inline_keyboard=row, resize_keyboard=True)

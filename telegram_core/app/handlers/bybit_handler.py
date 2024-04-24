@@ -5,14 +5,18 @@ from aiogram import Router, F
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove, InlineKeyboardMarkup
 
-from app.keyboards.simple_row import make_row_keyboard
+from app.keyboards.simple_row import make_row_keyboard, make_inline_keyboard
+from app.keyboards import buttons
 
 from fix.bybit_release.main import start as bybit_start
 
 
 router = Router()
+
+coins = ['ADA', 'LINK', 'XRP', 'XLM', 'DASH', 'NEO', 'TRX', 'EOS', 'LTC', 'DOGE', 'APT', 'ATOM']
+tasks = {}
 
 
 class BybitAuthData(StatesGroup):
@@ -23,8 +27,9 @@ class BybitAuthData(StatesGroup):
 
 
 @router.message(Command("bybit_start"))
-async def bybit_auth_start(message: types.Message, state: FSMContext):
-    await message.answer("Введите apikey")
+@router.callback_query(F.data == "bybit_start")
+async def bybit_auth_start(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.answer("Введите apikey")
     await state.set_state(BybitAuthData.waiting_for_apikey.state)
 
 
@@ -41,15 +46,16 @@ async def bybit_secretkey_chosen(message: types.Message, state: FSMContext):
     await state.update_data(secretkey=message.text)
 
     await state.set_state(BybitAuthData.waiting_for_symbol.state)
-    await message.answer("Введите торговую пару", reply_markup=make_row_keyboard(['XRP', 'SOL', 'ETH', 'NEAR']))
+    await message.answer("Введите торговую пару", reply_markup=make_inline_keyboard(coins))
 
 
 @router.message(BybitAuthData.waiting_for_symbol)
-async def bybit_symbol_chosen(message: types.Message, state: FSMContext):
-    await state.update_data(symbol=message.text)
+@router.callback_query(F.data == "bybit_change_coin")
+async def bybit_symbol_chosen(callback: types.CallbackQuery, state: FSMContext):
+    await state.update_data(symbol=callback.message.text)
 
     await state.set_state(BybitAuthData.waiting_for_deposit.state)
-    await message.answer("Введите желаемый депозит в usdt")
+    await callback.message.answer("Введите желаемый депозит в usdt")
 
 
 @router.message(BybitAuthData.waiting_for_deposit)
@@ -59,9 +65,17 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     
     apikey, secretkey, symbol, deposit = user_data.values()
-    asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
+    task = asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
+    tasks[message.chat.id] = task
 
-    await message.reply("BybBit has been started")    
+    await message.reply("BybBit запущен", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[buttons.BYBIT_STOP]]))    
+
+
+@router.callback_query(F.data == "bybit_stop")
+async def bybit_stop(callback: types.CallbackQuery):
+    tasks[callback.message.chat.id].cancel()
+
+    await callback.message.answer("ByBit останвлен")
 
 
 def register_handlers_bybit_auth(dp: Dispatcher):
