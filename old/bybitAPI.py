@@ -6,7 +6,7 @@ import time
 import hmac
 import hashlib
 
-# import config
+import config
 
 
 class Client:
