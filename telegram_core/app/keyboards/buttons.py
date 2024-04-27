@@ -23,4 +23,10 @@ PERSONAL_ACCOUNT = types.InlineKeyboardButton(
 def COIN(coin):
     return types.InlineKeyboardButton(
         text=coin,
-        callback_data=f"bybit_change_coin")
+        callback_data=f"bybit_change_{coin}")
+
+
+def COIN_BINGX(coin):
+    return types.InlineKeyboardButton(
+        text=coin,
+        callback_data=f"bingx_change_{coin}")

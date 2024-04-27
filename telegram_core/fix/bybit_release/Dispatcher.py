@@ -110,7 +110,7 @@ class Dispatcher:
             if self.step == 8:
                 return
             position_price = self.cl.position_price(self.symbol, 1)
-            print('Long position:', position_price)
+            # print('Long position:', position_price)
             if position_price == 0.0:
                 self.cl.cancel_order(self.symbol, averaging_long['orderId'])
                 return
@@ -121,8 +121,8 @@ class Dispatcher:
             if long_status == 'Filled':
                 position_price = self.cl.position_price(self.symbol, 1)
                 print('Long position:', position_price)
-
-                self.cl.market_tp(symbol=self.symbol,
+                self.cl.cancel_order(self.symbol, tp['orderId'])
+                tp = self.cl.market_tp(symbol=self.symbol,
                                   price=position_price * (1 + 0.1 / self.leverage),
                                   positionIdx=1)
 
@@ -157,7 +157,7 @@ class Dispatcher:
             if self.step == 8:
                 return
             position_price = self.cl.position_price(self.symbol, 2)
-            print('Short position:', position_price)
+            # print('Short position:', position_price)
 
             if position_price == 0.0:
                 self.cl.cancel_order(self.symbol, averaging_short['orderId'])

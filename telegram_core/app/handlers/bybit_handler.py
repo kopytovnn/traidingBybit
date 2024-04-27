@@ -50,9 +50,9 @@ async def bybit_secretkey_chosen(message: types.Message, state: FSMContext):
 
 
 @router.message(BybitAuthData.waiting_for_symbol)
-@router.callback_query(F.data == "bybit_change_coin")
+@router.callback_query(F.data.startswith("bybit_change_"))
 async def bybit_symbol_chosen(callback: types.CallbackQuery, state: FSMContext):
-    await state.update_data(symbol=callback.message.text)
+    await state.update_data(symbol=callback.data.split('_')[2])
 
     await state.set_state(BybitAuthData.waiting_for_deposit.state)
     await callback.message.answer("Введите желаемый депозит в usdt")
@@ -65,6 +65,7 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     
     apikey, secretkey, symbol, deposit = user_data.values()
+    print(f'\t{symbol}\n')
     task = asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
     tasks[message.chat.id] = task
 

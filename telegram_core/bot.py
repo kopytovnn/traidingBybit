@@ -6,7 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.config import TOKEN
 
-from app.handlers import common, bybit_handler
+from app.handlers import common, bybit_handler, bingx_handler
 
 from aiogram.filters import CommandStart
 
@@ -31,6 +31,7 @@ async def main():
 
     dp.include_router(common.router)
     dp.include_router(bybit_handler.router)
+    dp.include_router(bingx_handler.router)
     await dp.start_polling(bot)
 
 
