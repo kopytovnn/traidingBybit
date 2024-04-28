@@ -28,7 +28,17 @@ class Dispatcher:
         "XRPUSDT": 0,
         "DOGEUSDT": 0,
         "BTCUSDT": 3,
-        "ETHUSDT": 2
+        "ETHUSDT": 2,
+        "ADAUSDT": 0,
+        "LINKUSDT": 1,
+        "XLMUSDT": 0,
+        "DASHUSDT": 2,
+        "NEOUSDT": 2,
+        "TRXUSDT": 0,
+        "EOSUSDT": 1,
+        "LTCUSDT": 1,
+        "APTUSDT": 2,
+        "ATOMUSDT": 0
     }
 
     market_price = None
@@ -36,7 +46,7 @@ class Dispatcher:
     def __init__(self, cl: Client, symbol: str, leverage: int, depo: float):
         # debug
         # for i in self.step_map:
-        #     self.step_map[i] = self.step_map[i] / 10
+        #     self.step_map[i] = self.step_map[i] / 50
 
         # Imported settings
         self.cl = cl
@@ -107,30 +117,28 @@ class Dispatcher:
         while True:
             await asyncio.sleep(0.1)
 
-            if self.step == 8:
-                return
             position_price = self.cl.position_price(self.symbol, 1)
             # print('Long position:', position_price)
             if position_price == 0.0:
+                print('long position is null')
                 self.cl.cancel_order(self.symbol, averaging_long['orderId'])
                 return
-
+            if long_step == 7:
+                continue
             lo_info = self.cl.order_price(averaging_long['orderId'])
             # price = self.cl.kline_price(self.symbol)['price']
             long_status = lo_info['orderStatus']
             if long_status == 'Filled':
+                print('Long Limit Order has been filled')
                 position_price = self.cl.position_price(self.symbol, 1)
-                print('Long position:', position_price)
-                self.cl.cancel_order(self.symbol, tp['orderId'])
+                # self.cl.cancel_order(self.symbol, tp['orderId'])
                 tp = self.cl.market_tp(symbol=self.symbol,
                                   price=position_price * (1 + 0.1 / self.leverage),
                                   positionIdx=1)
-
                 long_step += 1
                 long_price = price * (1 - self.step_map[long_step + 1] / 100)
                 long_qty = round(base_depo * self.value_map[long_step + 1], circling)
                 averaging_long = self.simple_limit_buy(long_qty, long_price)
-                print(f'\tStart price: {price}, long limit price: {long_price} ~ {self.step_map[long_step + 1]}%')
 
     async def short_queue_async(self, circling):
         price = self.cl.kline_price(self.symbol)['price']
@@ -141,7 +149,6 @@ class Dispatcher:
 
         position_price = self.cl.position_price(self.symbol, 2)
         price = position_price
-        # print(position_price)
 
         self.cl.market_tp(symbol=self.symbol,
                           price=position_price * (1 - 0.1 / self.leverage),
@@ -150,16 +157,15 @@ class Dispatcher:
         short_qty = round(base_depo * self.value_map[short_step + 1], circling)
         short_price = price * (1 + self.step_map[short_step + 1] / 100)
         averaging_short = self.simple_limit_sell(short_qty, short_price)
-        print(f'\tStart price: {price}, short limit price: {short_price} ~ {self.step_map[short_step + 1]}%')
 
         while True:
             await asyncio.sleep(0.1)
-            if self.step == 8:
+            if short_step == 7:
+                print('short step is equal 8')
                 return
             position_price = self.cl.position_price(self.symbol, 2)
-            # print('Short position:', position_price)
-
             if position_price == 0.0:
+                print('short position is null')
                 self.cl.cancel_order(self.symbol, averaging_short['orderId'])
                 return
 
@@ -176,15 +182,18 @@ class Dispatcher:
                 short_price = price * (1 + self.step_map[short_step + 1] / 100)
                 short_qty = round(base_depo * self.value_map[short_step + 1], circling)
                 averaging_short = self.simple_limit_sell(short_qty, short_price)
-                print(f'\tStart price: {price}, short limit price: {short_price} ~ {self.step_map[short_step + 1]}%')
 
     async def long_loop(self, circling):
         while True:
+            print("long_loop start")
             await self.long_queue_async(circling)
+            print("long_loop end")
 
     async def short_loop(self, circling):
         while True:
+            print("short_loop start")
             await self.short_queue_async(circling)
+            print("short_loop end")
 
     async def upd_v6(self):
         self.cl.switch_position_mode(self.symbol, 3)

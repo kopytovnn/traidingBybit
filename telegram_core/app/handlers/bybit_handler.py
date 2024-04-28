@@ -66,6 +66,7 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
     
     apikey, secretkey, symbol, deposit = user_data.values()
     print(f'\t{symbol}\n')
+    print(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
     task = asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
     tasks[message.chat.id] = task
 
