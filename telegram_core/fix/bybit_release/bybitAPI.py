@@ -85,6 +85,8 @@ class Client:
             "positionIdx": positionIdx
         }
         resp = self._postOrder('/v5/position/trading-stop', params)
+        # if resp['retMsg'] != 'OK':
+        #     print(f'WARNING!!! market_tp(self, {symbol}, {price}, {positionIdx})', resp)
 
     def _postOrder(self, url, params=None):
         if params is None:
@@ -246,10 +248,14 @@ class Client:
 
         if resp['retMsg'] != 'OK':
             print(f'WARNING!!! position_price(self, {symbol}, {positionIdx})', resp)
-
-        for i in resp['result']['list']:
-            if i['positionIdx'] == positionIdx:
-                return float(i['avgPrice'])
+        
+        try:
+            for i in resp['result']['list']:
+                if i['positionIdx'] == positionIdx:
+                    return float(i['avgPrice'])
+        except BaseException as ex:
+            print(f'WARNING!!! position_price(self, {symbol}, {positionIdx})', resp)
+            print(f'resp["result"] = {resp["result"]}')
 
     def cancel_order(self, symbol, orderId):
         params = {

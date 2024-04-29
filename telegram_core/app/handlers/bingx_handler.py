@@ -17,7 +17,7 @@ from fix.bingx.main import start as bingx_start
 router = Router()
 
 coins = ['ADA', 'LINK', 'XRP', 'XLM', 'DASH', 'NEO', 'TRX', 'EOS', 'LTC', 'DOGE', 'APT', 'ATOM']
-tasks = {}
+bingx_tasks = {}
 
 
 class BingXAuthData(StatesGroup):
@@ -68,14 +68,14 @@ async def bingx_deposiot_chosen(message: types.Message, state: FSMContext):
     apikey, secretkey, symbol, deposit = user_data.values()
     print(f'\t{symbol}\n')
     task = asyncio.create_task(bingx_start(str(apikey), str(secretkey), symbol.upper() + '-USDT', float(deposit)))
-    tasks[message.chat.id] = task
+    bingx_tasks[message.chat.id] = task
 
     await message.reply("BingX запущен", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[buttons.BINGX_STOP]]))    
 
 
 @router.callback_query(F.data == "bingx_stop")
 async def bingx_stop(callback: types.CallbackQuery):
-    tasks[callback.message.chat.id].cancel()
+    bingx_tasks[callback.message.chat.id].cancel()
 
     await callback.message.answer("BingX останвлен")
 

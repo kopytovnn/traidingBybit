@@ -16,7 +16,7 @@ from fix.bybit_release.main import start as bybit_start
 router = Router()
 
 coins = ['ADA', 'LINK', 'XRP', 'XLM', 'DASH', 'NEO', 'TRX', 'EOS', 'LTC', 'DOGE', 'APT', 'ATOM']
-tasks = {}
+bybit_tasks = {}
 
 
 class BybitAuthData(StatesGroup):
@@ -68,14 +68,14 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
     print(f'\t{symbol}\n')
     print(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
     task = asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
-    tasks[message.chat.id] = task
+    bybit_tasks[message.chat.id] = task
 
     await message.reply("BybBit запущен", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[buttons.BYBIT_STOP]]))    
 
 
 @router.callback_query(F.data == "bybit_stop")
 async def bybit_stop(callback: types.CallbackQuery):
-    tasks[callback.message.chat.id].cancel()
+    bybit_tasks[callback.message.chat.id].cancel()
 
     await callback.message.answer("ByBit останвлен")
 
