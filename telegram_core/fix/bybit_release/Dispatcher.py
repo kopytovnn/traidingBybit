@@ -113,10 +113,8 @@ class Dispatcher:
         averaging_long = self.simple_limit_buy(long_qty, long_price)
         print(f'\tStart price: {price}, long limit price: {long_price} ~ {self.step_map[long_step + 1]}%')
 
-
         while True:
             await asyncio.sleep(0.1)
-
             position_price = self.cl.position_price(self.symbol, 1)
             # print('Long position:', position_price)
             if position_price == 0.0:
@@ -131,8 +129,6 @@ class Dispatcher:
             if long_status == 'Filled':
                 print('Long Limit Order has been filled')
                 position_price = self.cl.position_price(self.symbol, 1)
-                # self.cl.cancel_order(self.symbol, tp['orderId'])
-                # print(position_price, '->', position_price * (1 + 0.1 / self.leverage))
                 tp = self.cl.market_tp(symbol=self.symbol,
                                   price=position_price * (1 + 0.1 / self.leverage),
                                   positionIdx=1)
