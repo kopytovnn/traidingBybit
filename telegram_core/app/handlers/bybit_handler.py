@@ -12,6 +12,8 @@ from app.keyboards import buttons
 
 from fix.bybit_release.main import start as bybit_start
 
+from multiprocessing import Process
+
 
 router = Router()
 
@@ -67,9 +69,11 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
     apikey, secretkey, symbol, deposit = user_data.values()
     print(f'\t{symbol}\n')
     print(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
-    task = asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
+    # task = asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
     # task = asyncio.to_thread(bybit_start, bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
-    bybit_tasks[message.chat.id] = task
+    p = Process(target=bybit_start, args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
+    p.start()
+    bybit_tasks[message.chat.id] = p
 
     await message.reply("BybBit запущен", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[buttons.BYBIT_STOP]]))    
 
