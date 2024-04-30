@@ -122,6 +122,10 @@ class Dispatcher:
                 self.cl.cancel_order(self.symbol, averaging_long['orderId'])
                 return
             if long_step == 7:
+                position_price = self.cl.position_price(self.symbol, 1)
+                tp = self.cl.market_tp(symbol=self.symbol,
+                                  price=position_price * (1 + 0.8 / self.leverage),
+                                  positionIdx=1)
                 continue
             lo_info = self.cl.order_price(averaging_long['orderId'])
             # price = self.cl.kline_price(self.symbol)['price']
@@ -164,6 +168,10 @@ class Dispatcher:
                 self.cl.cancel_order(self.symbol, averaging_short['orderId'])
                 return
             if short_step == 7:
+                position_price = self.cl.position_price(self.symbol, 2)
+                self.cl.market_tp(symbol=self.symbol,
+                                  price=position_price * (1 - 0.8 / self.leverage),
+                                  positionIdx=2)
                 continue
             so_info = self.cl.order_price(averaging_short['orderId'])
             # price = self.cl.kline_price(self.symbol)['price']
