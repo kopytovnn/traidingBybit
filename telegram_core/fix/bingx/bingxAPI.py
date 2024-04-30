@@ -82,6 +82,7 @@ class Client:
         }
 
         resp = self._get('/openApi/swap/v1/ticker/price', params=params)
+        print(resp)
         return float(resp['data']['price'])
     
     def place_market_order(self, symbol, side, qty):

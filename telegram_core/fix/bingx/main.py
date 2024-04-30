@@ -1,5 +1,6 @@
 from fix.bingx.Dispatcher import *
 # from config import *
+from fix.bingx.config import *
 
 
 def start(apikey, secretkey, symbol, deposit):
@@ -10,3 +11,7 @@ def start(apikey, secretkey, symbol, deposit):
     dp = Dispatcher(cl=cl, symbol=symbol, leverage=leverage, depo=deposit)
     print('start')
     asyncio.run(dp.upd())
+
+
+if __name__ == '__main__':
+    start(apikey=APIKEY, secretkey=SECRETKEY, symbol='XRP-USDT', deposit=5000)

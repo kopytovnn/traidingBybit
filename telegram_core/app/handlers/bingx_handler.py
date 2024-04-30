@@ -70,7 +70,7 @@ async def bingx_deposiot_chosen(message: types.Message, state: FSMContext):
     apikey, secretkey, symbol, deposit = user_data.values()
     print(f'\t{symbol}\n')
     # task = asyncio.create_task(bingx_start(str(apikey), str(secretkey), symbol.upper() + '-USDT', float(deposit)))
-    p = Process(target=bingx_start, args=(str(apikey), str(secretkey), symbol.upper() + '=USDT', float(deposit)))
+    p = Process(target=bingx_start, args=(str(apikey), str(secretkey), symbol.upper() + '-USDT', float(deposit)))
     p.start()
     bingx_tasks[message.chat.id] = p
 
