@@ -80,7 +80,8 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
 
 @router.callback_query(F.data == "bybit_stop")
 async def bybit_stop(callback: types.CallbackQuery):
-    bybit_tasks[callback.message.chat.id].cancel()
+    bybit_tasks[callback.message.chat.id].join()
+    bybit_tasks[callback.message.chat.id].close()
 
     await callback.message.answer("ByBit останвлен")
 

@@ -10,6 +10,8 @@ from aiogram.types import Message, ReplyKeyboardRemove, InlineKeyboardMarkup
 from app.keyboards.simple_row import make_row_keyboard, make_inline_keyboard_BINGX
 from app.keyboards import buttons
 
+from multiprocessing import Process
+
 # from fix.bing.main import start as bybit_start
 from fix.bingx.main import start as bingx_start
 
@@ -67,15 +69,18 @@ async def bingx_deposiot_chosen(message: types.Message, state: FSMContext):
     
     apikey, secretkey, symbol, deposit = user_data.values()
     print(f'\t{symbol}\n')
-    task = asyncio.create_task(bingx_start(str(apikey), str(secretkey), symbol.upper() + '-USDT', float(deposit)))
-    bingx_tasks[message.chat.id] = task
+    # task = asyncio.create_task(bingx_start(str(apikey), str(secretkey), symbol.upper() + '-USDT', float(deposit)))
+    p = Process(target=bingx_start, args=(str(apikey), str(secretkey), symbol.upper() + '=USDT', float(deposit)))
+    p.start()
+    bingx_tasks[message.chat.id] = p
 
     await message.reply("BingX запущен", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[buttons.BINGX_STOP]]))    
 
 
 @router.callback_query(F.data == "bingx_stop")
 async def bingx_stop(callback: types.CallbackQuery):
-    bingx_tasks[callback.message.chat.id].cancel()
+    bingx_tasks[callback.message.chat.id].join()
+    bingx_tasks[callback.message.chat.id].close()
 
     await callback.message.answer("BingX останвлен")
 
