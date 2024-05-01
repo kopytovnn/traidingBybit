@@ -26,8 +26,8 @@ class Dispatcher:
     
     def __init__(self, cl: Client, symbol: str, leverage: int, depo: float) -> None:
         # debug
-        # for i in self.step_map:
-        #     self.step_map[i] = self.step_map[i] / 10
+        for i in self.step_map:
+            self.step_map[i] = 0.1
 
         self.cl = cl
         self.symbol = symbol
@@ -80,7 +80,6 @@ class Dispatcher:
         long_qty = base_depo * self.value_map[long_step + 1]
         long_price = price * (1 - self.step_map[long_step + 1] / 100)
         averaging_long = self.simple_limit_buy(long_qty, long_price)
-        print(f'\tStart price: {price}, long limit price: {long_price} ~ {self.step_map[long_step + 1]}%')
 
         while True:
             await asyncio.sleep(0.1)
@@ -95,7 +94,6 @@ class Dispatcher:
             if long_status == 'FILLED':
                 position_price = self.cl.position_price(self.symbol, 'BUY')
                 position_value = self.cl.position_value(self.symbol, 'BUY')
-                print('Long position:', position_price)
                 self.cl.cancel_order(symbol=self.symbol, orderId=tp['orderId'], side='BUY')
                 self.cl.market_tp(symbol=self.symbol,
                                   price=position_price * (1 + 0.1 / self.leverage),
@@ -106,13 +104,13 @@ class Dispatcher:
                 long_price = price * (1 - self.step_map[long_step + 1] / 100)
                 long_qty = base_depo * self.value_map[long_step + 1]
                 averaging_long = self.simple_limit_buy(long_qty, long_price)
-                print(f'\tStart price: {price}, long limit price: {long_price} ~ {self.step_map[long_step + 1]}%')
 
     async def short_queue_async(self):
         price = self.cl.market_price(self.symbol)
         short_step = 1
         base_depo = self.depo / price
         short_order = self.simple_market_sell(base_depo * self.value_map[1])
+        print(f'Market Short order has opened: \t{short_order["data"]["order"]["orderId"]}')
         await asyncio.sleep(0.1)
         position_price = self.cl.position_price(self.symbol, 'SELL')
         price = position_price
@@ -121,11 +119,13 @@ class Dispatcher:
                           side='SELL',
                           price=position_price * (1 - 0.1 / self.leverage),
                           qty=position_value)
+        print(f'Take profit for Short order has created: \t{tp["orderId"]}')
         
         short_qty = base_depo * self.value_map[short_step + 1]
         short_price = price * (1 + self.step_map[short_step + 1] / 100)
         averaging_short = self.simple_limit_sell(short_qty, short_price)
-        print(f'\tStart price: {price}, long limit price: {short_price} ~ {self.step_map[short_step + 1]}%')
+        print(f'Limit Short order has opened: \t{averaging_short["orderId"]}\n')
+
 
         while True:
             await asyncio.sleep(0.1)
@@ -133,25 +133,26 @@ class Dispatcher:
                 return
             position_price = self.cl.position_price(self.symbol, 'SELL')
             if not position_price:
+                print('Short position is Null')
                 self.cl.cancel_order(self.symbol, averaging_short['orderId'], 'SELL')
                 return
             so_info = self.cl.order_price(self.symbol, averaging_short['orderId'])
             short_status = so_info['orderStatus']
             if short_status == 'FILLED':
+                print('Short order have been filled')
                 position_price = self.cl.position_price(self.symbol, 'SELL')
                 position_value = self.cl.position_value(self.symbol, 'SELL')
-                print('Short position:', position_price)
-                self.cl.cancel_order(symbol=self.symbol, orderId=tp['orderId'], side='SELL')
                 self.cl.market_tp(symbol=self.symbol,
                                   price=position_price * (1 - 0.1 / self.leverage),
                                   side='SELL',
                                   qty=position_value)
+                print('Take profit for short position have been updated')
 
                 short_step += 1
                 short_price = price * (1 - self.step_map[short_step + 1] / 100)
                 short_qty = base_depo * self.value_map[short_step + 1]
                 averaging_short = self.simple_limit_sell(short_qty, short_price)
-                print(f'\tStart price: {price}, long limit price: {short_price} ~ {self.step_map[short_step + 1]}%')
+                print(f'Short Limit Order have opened: \t{averaging_short["orderId"]}')
 
     async def long_loop(self):
         while True:
@@ -167,5 +168,5 @@ class Dispatcher:
         task1 = asyncio.create_task(self.long_loop())
         task2 = asyncio.create_task(self.short_loop())
 
-        await task1
+        # await task1
         await task2

@@ -82,11 +82,11 @@ class Client:
         }
 
         resp = self._get('/openApi/swap/v1/ticker/price', params=params)
-        print(resp)
+        # print(resp)
         return float(resp['data']['price'])
     
     def place_market_order(self, symbol, side, qty):
-        print(side)
+        # print(side)
         positionSide = {"BUY": "LONG", "SELL": "SHORT"}[side]
         params = {
             "symbol": symbol,
@@ -96,7 +96,7 @@ class Client:
             "type": "MARKET"
         }
         response = self._postOrder('/openApi/swap/v2/trade/order', params=params)
-        print(response)
+        # print(response)
         return response
     
     def place_limit_order(self, symbol, side, qty, price):
@@ -142,6 +142,8 @@ class Client:
             if i['positionSide'] == positionSide:
                 return i['positionId']
             
+
+            
     def cancel_order(self, symbol, orderId, side):
         positionSide = {"BUY": "LONG", "SELL": "SHORT"}[side]        
         params = {
@@ -162,14 +164,27 @@ class Client:
             "stopPrice": price,
             "quantity": qty,
         }
-        response = self._postOrder('/openApi/swap/v2/trade/order', params=params)['data']['order']
-        return response
+        self.cancel_tp_order(symbol=symbol, side=side)
+        response = self._postOrder('/openApi/swap/v2/trade/order', params=params)
+        if 'order' not in response['data']:
+            print(response)
+            self.cancel_tp_order(symbol=symbol, side=side)
+            response = self._postOrder('/openApi/swap/v2/trade/order', params=params)
+        return response['data']['order']
 
     def order_price(self, symbol, orderId):
         params = {"symbol": symbol,
                   "orderId": orderId}
         resp = self._get('/openApi/swap/v2/trade/order', params)['data']['order']
         return {'status': True, 'price': resp['price'], 'orderStatus': resp['status'], 'qty': resp['origQty']}
+    
+    def cancel_tp_order(self, symbol, side):
+        params = {"symbol": symbol,
+                  }
+        resp = self._get('/openApi/swap/v2/trade/openOrders', params)
+        for i in resp['data']['orders']:
+            if i['side'] == side and i['type'] == 'TAKE_PROFIT_MARKET':
+                resp = self.cancel_order(symbol=symbol, orderId=i['orderId'], side=side)
 
 # cl = Client(apikey=APIKEY, secretkey=SECRETKEY)
 
