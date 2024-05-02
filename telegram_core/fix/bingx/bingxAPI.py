@@ -154,6 +154,17 @@ class Client:
 
         response = self._delete('/openApi/swap/v2/trade/order', params=params)
 
+    def cancel_order2(self, symbol, orderId, positionSide):
+        # positionSide = {"BUY": "LONG", "SELL": "SHORT"}[side]        
+        params = {
+            "symbol": symbol,
+            "orderId": orderId,
+            "positionSide": positionSide
+        }
+
+        response = self._delete('/openApi/swap/v2/trade/order', params=params)
+        return response
+
     def market_tp(self, symbol, side, price, qty):
         positionSide = {"BUY": "LONG", "SELL": "SHORT"}[side]
         params = {
@@ -164,12 +175,12 @@ class Client:
             "stopPrice": price,
             "quantity": qty,
         }
-        self.cancel_tp_order(symbol=symbol, side=side)
+        # self.cancel_tp_order(symbol=symbol, side=side)
         response = self._postOrder('/openApi/swap/v2/trade/order', params=params)
-        if 'order' not in response['data']:
-            print(response)
-            self.cancel_tp_order(symbol=symbol, side=side)
-            response = self._postOrder('/openApi/swap/v2/trade/order', params=params)
+        # if 'order' not in response['data']:
+        #     print(response)
+        #     self.cancel_tp_order(symbol=symbol, side=side)
+        #     response = self._postOrder('/openApi/swap/v2/trade/order', params=params)
         return response['data']['order']
 
     def order_price(self, symbol, orderId):
@@ -179,12 +190,25 @@ class Client:
         return {'status': True, 'price': resp['price'], 'orderStatus': resp['status'], 'qty': resp['origQty']}
     
     def cancel_tp_order(self, symbol, side):
+        inv_side = {'BUY': 'SELL', 'SELL': 'BUY'}[side]
+        pos_side = {'BUY': 'LONG', 'SELL': 'SHORT'}[side]
         params = {"symbol": symbol,
+                  "type": "TAKE_PROFIT_MARKET"
                   }
         resp = self._get('/openApi/swap/v2/trade/openOrders', params)
+        if 'data' not in resp:
+            return f"cancel_tp_order(self, {symbol}, {side}): data not in resp"
+        if 'orders' not in resp['data']:
+            print(f"cancel_tp_order(self, {symbol}, {side}): orders not in resp[data]")
+            return f"cancel_tp_order(self, {symbol}, {side}): orders not in resp[data]"
         for i in resp['data']['orders']:
-            if i['side'] == side and i['type'] == 'TAKE_PROFIT_MARKET':
-                resp = self.cancel_order(symbol=symbol, orderId=i['orderId'], side=side)
+            print(pos_side)
+            if i['type'] in ['TAKE_PROFIT_MARKET', 'TAKE_PROFIT', 'TAKE_PROFIT_LIMIT']:
+                if i['positionSide'] == pos_side:
+                    # print(i)
+                    resp = self.cancel_order2(symbol=symbol, orderId=i['orderId'], positionSide=pos_side)
+                    return resp
+        return {'orderId': 'No tp order'}
 
 # cl = Client(apikey=APIKEY, secretkey=SECRETKEY)
 

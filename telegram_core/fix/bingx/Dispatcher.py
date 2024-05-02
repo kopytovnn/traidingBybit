@@ -26,8 +26,8 @@ class Dispatcher:
     
     def __init__(self, cl: Client, symbol: str, leverage: int, depo: float) -> None:
         # debug
-        for i in self.step_map:
-            self.step_map[i] = 0.1
+        # for i in self.step_map:
+        #     self.step_map[i] = 0.1
 
         self.cl = cl
         self.symbol = symbol
@@ -146,6 +146,7 @@ class Dispatcher:
                 return
             so_info = self.cl.order_price(self.symbol, averaging_short['orderId'])
             short_status = so_info['orderStatus']
+            print(short_status)
             if short_status == 'FILLED':
                 print('Short order have been filled')
                 position_price = self.cl.position_price(self.symbol, 'SELL')
@@ -170,11 +171,67 @@ class Dispatcher:
         while True:
             await self.short_queue_async()
 
-    async def upd(self):
+    def upd(self):
         self.cl.set_leverage(self.symbol, 20)
 
-        task1 = asyncio.create_task(self.long_loop())
-        task2 = asyncio.create_task(self.short_loop())
+        # task1 = asyncio.create_task(self.long_loop())
+        # task2 = asyncio.create_task(self.short_loop())
 
-        await task1
-        await task2
+        # await task1
+        # await task2
+        loop = asyncio.get_event_loop()
+        task1 = loop.create_task(self.long_loop())
+        task2 = loop.create_task(self.short_loop())
+        loop.run_until_complete(asyncio.wait([task1, task2]))
+
+    def upd_unite(self):
+        steps = 5
+
+        lcommands = {  # step: [action1, action2,..]
+            0: [self.simple_market_buy, self.simple_limit_buy, self.cl.cancel_tp_order, self.cl.market_tp],
+            1: [self.cl.cancel_tp_order, self.cl.market_tp, self.simple_limit_buy],
+            2: [self.cl.cancel_tp_order, self.cl.market_tp, self.simple_limit_buy],
+            3: [self.cl.cancel_tp_order, self.cl.market_tp, self.simple_limit_buy],
+            4: [self.cl.cancel_tp_order, self.cl.market_tp, self.simple_limit_buy],
+            5: [self.cl.cancel_tp_order, self.cl.market_tp] 
+        }
+
+        scommands = {  # step: [action1, action2,..]
+            0: [self.simple_market_sell, self.simple_limit_sell, self.cl.cancel_tp_order, self.cl.market_tp],
+            1: [self.cl.cancel_tp_order, self.cl.market_tp, self.simple_limit_sell],
+            2: [self.cl.cancel_tp_order, self.cl.market_tp, self.simple_limit_sell],
+            3: [self.cl.cancel_tp_order, self.cl.market_tp, self.simple_limit_sell],
+            4: [self.cl.cancel_tp_order, self.cl.market_tp, self.simple_limit_sell],
+            5: [self.cl.cancel_tp_order, self.cl.market_tp] 
+        }
+
+        lstep, sstep = 0, 0
+
+        while True:
+            price, lposprice, lposqty = None, None, None
+            def dataActualization():
+                price = self.cl.market_price(self.symbol)
+                lposprice = self.cl.position_price(self.symbol, 'BUY')
+                lposqty = self.cl.position_value(self.symbol, 'BUY')                
+                print('price', price)
+                print(f'Long position data:\n\t\t\tlposprice: {lposprice}\n\t\t\tlposqty: {lposqty}')
+                return price, lposprice, lposqty  
+
+            price, lposprice, lposqty = dataActualization() 
+
+            lstep %= steps
+            sstep %= steps
+
+            if lstep == 0:
+                lmarket = lcommands[lstep][0](100)
+                price, lposprice, lposqty = dataActualization() 
+                llimit = lcommands[lstep][1](100, price * 0.99)
+                lcanceltp = lcommands[lstep][2](self.symbol, 'BUY')
+                price, lposprice, lposqty = dataActualization() 
+                ltp = lcommands[lstep][3](self.symbol, 'BUY', lposprice * 1.01, lposqty)
+                print(f'Step 0:\n\tlmarket: {lmarket}\n\tllimit: {llimit}\n\tlcanceltp: {lcanceltp}\n\tltp: {ltp}')
+                lstep += 1
+            elif lstep < steps:
+                print('Long postion price:', lposprice)
+            else:
+                print('...')

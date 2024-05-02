@@ -1,2 +1,4 @@
 bybit/__pycache__/config.cpython-39.pyc
 bybit/config.py
+telegram_core/fix/bingx/__pycache__
+telegram_core/fix/bybit/__pycache__
