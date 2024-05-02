@@ -99,7 +99,7 @@ class Dispatcher:
         long_step = 1
         base_depo = self.depo / price
         long_order = self.simple_market_buy(round(base_depo * self.value_map[1], circling))
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
 
         position_price = self.cl.position_price(self.symbol, 1)
         price = position_price
@@ -114,7 +114,7 @@ class Dispatcher:
         print(f'\tStart price: {price}, long limit price: {long_price} ~ {self.step_map[long_step + 1]}%')
 
         while True:
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0)
             position_price = self.cl.position_price(self.symbol, 1)
             # print('Long position:', position_price)
             if position_price == 0.0:
@@ -147,7 +147,7 @@ class Dispatcher:
         short_step = 1
         base_depo = self.depo / price
         short_order = self.simple_market_sell(round(base_depo * self.value_map[1], circling))
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
 
         position_price = self.cl.position_price(self.symbol, 2)
         price = position_price
@@ -161,7 +161,7 @@ class Dispatcher:
         averaging_short = self.simple_limit_sell(short_qty, short_price)
 
         while True:
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0)
             position_price = self.cl.position_price(self.symbol, 2)
             if position_price == 0.0:
                 print('short position is null')

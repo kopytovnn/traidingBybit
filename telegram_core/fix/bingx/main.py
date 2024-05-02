@@ -2,6 +2,10 @@ from fix.bingx.Dispatcher import *
 # from config import *
 from fix.bingx.config import *
 
+import gevent
+from gevent import monkey
+monkey.patch_all()
+
 
 def start(apikey, secretkey, symbol, deposit):
     cl = Client(apikey, secretkey)
@@ -11,6 +15,8 @@ def start(apikey, secretkey, symbol, deposit):
     dp = Dispatcher(cl=cl, symbol=symbol, leverage=leverage, depo=deposit)
     print('start')
     asyncio.run(dp.upd())
+
+
 
 
 if __name__ == '__main__':

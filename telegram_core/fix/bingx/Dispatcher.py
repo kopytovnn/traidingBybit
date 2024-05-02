@@ -68,7 +68,8 @@ class Dispatcher:
         long_step = 1
         base_depo = self.depo / price
         long_order = self.simple_market_buy(base_depo * self.value_map[1])
-        await asyncio.sleep(0.1)
+        print(f'Market Long order has opened: \t{long_order["data"]["order"]["orderId"]}')
+        await asyncio.sleep(0)
         position_price = self.cl.position_price(self.symbol, 'BUY')
         price = position_price
         position_value = self.cl.position_value(self.symbol, 'BUY')
@@ -76,22 +77,28 @@ class Dispatcher:
                           side='BUY',
                           price=position_price * (1 + 0.1 / self.leverage),
                           qty=position_value)
+        print(f'Take profit for Long order has created: \t{tp["orderId"]}', tp)
+
         
         long_qty = base_depo * self.value_map[long_step + 1]
         long_price = price * (1 - self.step_map[long_step + 1] / 100)
         averaging_long = self.simple_limit_buy(long_qty, long_price)
+        print(f'Limit Long order has opened: \t{averaging_long["orderId"]}\n')
+
 
         while True:
-            await asyncio.sleep(0.1)
-            if self.step == 8:
+            await asyncio.sleep(0)
+            if long_step == 8:
                 return
             position_price = self.cl.position_price(self.symbol, 'BUY')
             if not position_price:
+                print('Long position is null')
                 self.cl.cancel_order(self.symbol, averaging_long['orderId'], 'BUY')
                 return
             lo_info = self.cl.order_price(self.symbol, averaging_long['orderId'])
             long_status = lo_info['orderStatus']
             if long_status == 'FILLED':
+                print('Long position have been filled')
                 position_price = self.cl.position_price(self.symbol, 'BUY')
                 position_value = self.cl.position_value(self.symbol, 'BUY')
                 self.cl.cancel_order(symbol=self.symbol, orderId=tp['orderId'], side='BUY')
@@ -99,6 +106,7 @@ class Dispatcher:
                                   price=position_price * (1 + 0.1 / self.leverage),
                                   side='BUY',
                                   qty=position_value)
+                print('Take profit for long position have been updated')                
 
                 long_step += 1
                 long_price = price * (1 - self.step_map[long_step + 1] / 100)
@@ -110,8 +118,8 @@ class Dispatcher:
         short_step = 1
         base_depo = self.depo / price
         short_order = self.simple_market_sell(base_depo * self.value_map[1])
-        print(f'Market Short order has opened: \t{short_order["data"]["order"]["orderId"]}')
-        await asyncio.sleep(0.1)
+        print(f'Market Short order has opened: \t{short_order["data"]["order"]["orderId"]}\n')
+        await asyncio.sleep(0)
         position_price = self.cl.position_price(self.symbol, 'SELL')
         price = position_price
         position_value = self.cl.position_value(self.symbol, 'SELL')
@@ -119,7 +127,7 @@ class Dispatcher:
                           side='SELL',
                           price=position_price * (1 - 0.1 / self.leverage),
                           qty=position_value)
-        print(f'Take profit for Short order has created: \t{tp["orderId"]}')
+        print(f'Take profit for Short order has created: \t{tp["orderId"]}', tp)
         
         short_qty = base_depo * self.value_map[short_step + 1]
         short_price = price * (1 + self.step_map[short_step + 1] / 100)
@@ -128,8 +136,8 @@ class Dispatcher:
 
 
         while True:
-            await asyncio.sleep(0.1)
-            if self.step == 8:
+            await asyncio.sleep(0)
+            if short_step == 8:
                 return
             position_price = self.cl.position_price(self.symbol, 'SELL')
             if not position_price:
@@ -168,5 +176,5 @@ class Dispatcher:
         task1 = asyncio.create_task(self.long_loop())
         task2 = asyncio.create_task(self.short_loop())
 
-        # await task1
+        await task1
         await task2
