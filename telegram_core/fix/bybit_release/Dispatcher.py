@@ -146,47 +146,49 @@ class Dispatcher:
         price = self.cl.kline_price(self.symbol)['price']
         short_step = 1
         base_depo = self.depo / price
-        short_order = self.simple_market_sell(round(base_depo * self.value_map[1], circling))
+        market_order = self.simple_market_sell(round(base_depo * self.value_map[1], circling))
         await asyncio.sleep(0)
 
         position_price = self.cl.position_price(self.symbol, 2)
         price = position_price
-
-        self.cl.market_tp(symbol=self.symbol,
+        market_tp = self.cl.market_tp(symbol=self.symbol,
                           price=position_price * (1 - 0.1 / self.leverage),
                           positionIdx=2)
-
-        short_qty = round(base_depo * self.value_map[short_step + 1], circling)
-        short_price = price * (1 + self.step_map[short_step + 1] / 100)
-        averaging_short = self.simple_limit_sell(short_qty, short_price)
+        
+        shortqty = round(base_depo * self.value_map[short_step + 1], circling)
+        shortprice = price * (1 + self.step_map[short_step + 1] / 100)
+        averagingshort = self.simple_limit_sell(shortqty, shortprice)
+        print(f'\tStart price: {price}, short limit price: {shortprice} ~ {self.step_map[short_step + 1]}%')
 
         while True:
             await asyncio.sleep(0)
             position_price = self.cl.position_price(self.symbol, 2)
             if position_price == 0.0:
                 print('short position is null')
-                self.cl.cancel_order(self.symbol, averaging_short['orderId'])
+                try:
+                    self.cl.cancel_order(self.symbol, averagingshort['orderId'])
+                except BaseException:
+                    print(f'\n\nself.cl.cancel_order(self.symbol, averagingshort["orderId"])\n\n')
                 return
             if short_step == 7:
                 position_price = self.cl.position_price(self.symbol, 2)
-                self.cl.market_tp(symbol=self.symbol,
-                                  price=position_price * (1 - 0.8 / self.leverage),
-                                  positionIdx=2)
+                market_tp = self.cl.market_tp(symbol=self.symbol,
+                                              price=position_price * (1 - 0.8 / self.leverage),
+                                              positionIdx=2)
                 continue
-            so_info = self.cl.order_price(averaging_short['orderId'])
-            # price = self.cl.kline_price(self.symbol)['price']
-            short_status = so_info['orderStatus']
-            if short_status == 'Filled':
+            so_info = self.cl.order_price(averagingshort['orderId'])
+            shortstatus = so_info['orderStatus']
+            if shortstatus == 'Filled':
                 print('Short Limit Order has been filled')
                 position_price = self.cl.position_price(self.symbol, 2)
-                self.cl.market_tp(symbol=self.symbol,
-                                  price=position_price * (1 - 0.1 / self.leverage),
-                                  positionIdx=2)
+                market_tp = self.cl.market_tp(symbol=self.symbol,
+                                              price=position_price * (1 - 0.1 / self.leverage),
+                                              positionIdx=2)
                 short_step += 1
-                short_price = price * (1 + self.step_map[short_step + 1] / 100)
-                short_qty = round(base_depo * self.value_map[short_step + 1], circling)
-                averaging_short = self.simple_limit_sell(short_qty, short_price)
-                print(f'{short_step}. {averaging_short}\n')
+                shortprice = price * (1 + self.step_map[short_step + 1] / 100)
+                shortqty = round(base_depo * self.value_map[short_step + 1], circling)
+                averagingshort = self.simple_limit_sell(shortqty, shortprice)
+                print(f'{short_step}. {averagingshort}\n')
 
     async def long_loop(self, circling):
         while True:
@@ -204,8 +206,8 @@ class Dispatcher:
         self.cl.switch_position_mode(self.symbol, 3)
         circling = self.circling_map[self.symbol]
 
-        task1 = asyncio.create_task(self.long_loop(circling))
+        # task1 = asyncio.create_task(self.long_loop(circling))
         task2 = asyncio.create_task(self.short_loop(circling))
 
-        await task1
+        # await task1
         await task2
