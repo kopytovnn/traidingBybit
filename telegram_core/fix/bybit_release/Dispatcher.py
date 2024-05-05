@@ -192,15 +192,23 @@ class Dispatcher:
 
     async def long_loop(self, circling):
         while True:
-            print("long_loop start")
-            await self.long_queue_async(circling)
-            print("long_loop end")
+            try:
+                print("long_loop start")
+                await self.long_queue_async(circling)
+                print("long_loop end")
+            except BaseException:
+                print('lonng loop end. Exeption')
+                continue
 
     async def short_loop(self, circling):
         while True:
-            print("short_loop start")
-            await self.short_queue_async(circling)
-            print("short_loop end")
+            try: 
+                print("short_loop start")
+                await self.short_queue_async(circling)
+                print("short_loop end")
+            except BaseException:
+                print('short loop end. Exeption')
+                continue
 
     async def upd_v6(self):
         self.cl.switch_position_mode(self.symbol, 3)
