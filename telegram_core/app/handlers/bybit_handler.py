@@ -10,7 +10,8 @@ from aiogram.types import Message, ReplyKeyboardRemove, InlineKeyboardMarkup
 from app.keyboards.simple_row import make_row_keyboard, make_inline_keyboard
 from app.keyboards import buttons
 
-from fix.Bybit.main import start as bybit_start
+# from fix.Bybit.main import start as bybit_start
+from fix.Bybit.main import start
 
 from multiprocessing import Process
 
@@ -71,9 +72,11 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
     print(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
     # task = asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
     # task = asyncio.to_thread(bybit_start, bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
-    p = Process(target=bybit_start, args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
+    p = Process(target=start, args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
+    # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
     p.start()
     bybit_tasks[message.chat.id] = p
+    # start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
 
     await message.reply("BybBit запущен", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[buttons.BYBIT_STOP]]))    
 
