@@ -14,7 +14,7 @@ from aiogram.types import Message
 
 import multiprocessing as mp
 
-from fix.bybit_release.main import start
+from fix.Bybit.main import start
 
 
 # from telegram_core.app.handlers import bybit_handler

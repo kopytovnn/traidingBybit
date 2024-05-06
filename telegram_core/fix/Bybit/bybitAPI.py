@@ -85,8 +85,10 @@ class Client:
             "positionIdx": positionIdx
         }
         resp = self._postOrder('/v5/position/trading-stop', params)
+        # print(resp)
         # if resp['retMsg'] != 'OK':
         #     print(f'WARNING!!! market_tp(self, {symbol}, {price}, {positionIdx})', resp)
+        return resp
 
     def _postOrder(self, url, params=None):
         if params is None:
@@ -137,9 +139,9 @@ class Client:
         retMsg = resp['retMsg']
         if retMsg == 'OK':
             orderId = resp['result']['orderId']
-            print(f'Market order has been opened: qty = {qty}')
+            # print(f'Market order has been opened: qty = {qty}')
             return {"status": True, "orderId": orderId}
-        print(resp)
+        # print(resp)
         return {"status": False, "restMsg": retMsg}
 
     def limit_open_order(self, symbol='SOLUSDT', side='Buy', price=62000, qty=10, category='linear', takeProfit=-1):
@@ -167,16 +169,17 @@ class Client:
             return {"status": True, "orderId": orderId}
         return {"status": False, "retMsg": retMsg}
 
-    # def order_price(self, orderId):
-    #     resp = self._get('/contract/v3/private/order/list')
-    #     retMsg = resp['retMsg']
-    #     if retMsg == 'OK':
-    #         order_list = resp['result']['list']
-    #         for order in order_list:
-    #             if order['orderId'] == orderId:
-    #                 return {'status': True, 'price': float(order['price']), 'orderStatus': order['orderStatus']}
-    #         return {'status': False, 'retMsg': 'Order not found'}
-    #     return {'status': False, 'retMsg': retMsg}
+    def all_orders(self, symbol):
+        params = {"category": "linear",
+                  "symbol": symbol,
+                  }
+        resp = self._get('/v5/order/realtime', params)
+        # print(resp)
+        retMsg = resp['retMsg']
+        if retMsg == 'OK':
+            order_list = resp['result']['list']
+            return order_list
+    
     def order_price(self, orderId):
         params = {"category": "linear",
                   "orderId": orderId}
@@ -239,23 +242,13 @@ class Client:
             return {'status': True, 'price': float(resp['result']['list'][0][4])}
         return {'status': False, 'retMsg': resp['retMsg']}
 
-    def position_price(self, symbol, positionIdx):
+    def position_price(self, symbol):
         params = {
             "symbol": symbol,
             "category": "linear",
         }
-        resp = self._get('/v5/position/list', params)
-
-        if resp['retMsg'] != 'OK':
-            print(f'WARNING!!! position_price(self, {symbol}, {positionIdx})', resp)
-        
-        try:
-            for i in resp['result']['list']:
-                if i['positionIdx'] == positionIdx:
-                    return float(i['avgPrice'])
-        except BaseException as ex:
-            print(f'WARNING!!! position_price(self, {symbol}, {positionIdx})', resp)
-            print(f'resp["result"] = {resp["result"]}')
+        resp = self._get('/v5/position/list', params)['result']['list']
+        return resp
 
     def cancel_order(self, symbol, orderId):
         params = {
@@ -266,7 +259,9 @@ class Client:
 
         resp = self._postOrder('/v5/order/cancel', params)
         if resp['retMsg'] != 'OK':
-            print(f'WARNING!!! cancel_order(self, {symbol}, {orderId})'), resp
+            print(f'WARNING!!! cancel_order(self, {symbol}, {orderId})')
+        return resp
+
 
 # apikey = config.API_KEY
 # secretkey = config.SECRET_KEY

@@ -1,5 +1,5 @@
 import time
-from fix.bybit_release.bybitAPI import Client
+from fix.Bybit.bybitAPI import Client
 from multiprocessing import Process
 import asyncio
 # import config

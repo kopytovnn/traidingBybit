@@ -10,7 +10,7 @@ from aiogram.types import Message, ReplyKeyboardRemove, InlineKeyboardMarkup
 from app.keyboards.simple_row import make_row_keyboard, make_inline_keyboard
 from app.keyboards import buttons
 
-from fix.bybit_release.main import start as bybit_start
+from fix.Bybit.main import start as bybit_start
 
 from multiprocessing import Process
 

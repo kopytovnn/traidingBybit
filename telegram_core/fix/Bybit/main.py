@@ -5,7 +5,7 @@ from fix.Bybit.Dispatcher2 import Dispatcher
 import asyncio
 
 
-def start(apikey, secretkey, symbol, depo):
-    cl = Client(apikey, secretkey)
-    dp = Dispatcher(cl, symbol, 20, depo)
+def start():
+    cl = Client(API_KEY, SECRET_KEY)
+    dp = Dispatcher(cl, 'XRPUSDT', 20, 5000)
     asyncio.run(dp.asyncEngineStart())
