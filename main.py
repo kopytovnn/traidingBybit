@@ -1,6 +1,5 @@
-from bybit_release import main as bybit
-from bybit_release.config import *
-import asyncio
+from fix.Bybit import main as bybit
+from fix.Bybit.config import *
 
 
-asyncio.run(bybit.start(API_KEY, SECRET_KEY, float(10000)))
+bybit.start()

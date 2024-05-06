@@ -1,5 +1,5 @@
 import time
-from bybit_release.bybitAPI import Client
+from fix.Bybit.bybitAPI import Client
 from multiprocessing import Process
 import asyncio
 # import config
@@ -28,7 +28,17 @@ class Dispatcher:
         "XRPUSDT": 0,
         "DOGEUSDT": 0,
         "BTCUSDT": 3,
-        "ETHUSDT": 2
+        "ETHUSDT": 2,
+        "ADAUSDT": 0,
+        "LINKUSDT": 1,
+        "XLMUSDT": 0,
+        "DASHUSDT": 2,
+        "NEOUSDT": 2,
+        "TRXUSDT": 0,
+        "EOSUSDT": 1,
+        "LTCUSDT": 1,
+        "APTUSDT": 2,
+        "ATOMUSDT": 0
     }
 
     market_price = None
@@ -36,7 +46,7 @@ class Dispatcher:
     def __init__(self, cl: Client, symbol: str, leverage: int, depo: float):
         # debug
         # for i in self.step_map:
-        #     self.step_map[i] = self.step_map[i] / 10
+        #     self.step_map[i] = self.step_map[1] / 20
 
         # Imported settings
         self.cl = cl
@@ -89,7 +99,7 @@ class Dispatcher:
         long_step = 1
         base_depo = self.depo / price
         long_order = self.simple_market_buy(round(base_depo * self.value_map[1], circling))
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
 
         position_price = self.cl.position_price(self.symbol, 1)
         price = position_price
@@ -103,88 +113,102 @@ class Dispatcher:
         averaging_long = self.simple_limit_buy(long_qty, long_price)
         print(f'\tStart price: {price}, long limit price: {long_price} ~ {self.step_map[long_step + 1]}%')
 
-
         while True:
-            await asyncio.sleep(0.1)
-
-            if self.step == 8:
-                return
+            await asyncio.sleep(0)
             position_price = self.cl.position_price(self.symbol, 1)
-            print('Long position:', position_price)
+            # print('Long position:', position_price)
             if position_price == 0.0:
+                print('long position is null')
                 self.cl.cancel_order(self.symbol, averaging_long['orderId'])
                 return
-
+            if long_step == 7:
+                position_price = self.cl.position_price(self.symbol, 1)
+                tp = self.cl.market_tp(symbol=self.symbol,
+                                  price=position_price * (1 + 0.8 / self.leverage),
+                                  positionIdx=1)
+                continue
             lo_info = self.cl.order_price(averaging_long['orderId'])
             # price = self.cl.kline_price(self.symbol)['price']
             long_status = lo_info['orderStatus']
             if long_status == 'Filled':
+                print('Long Limit Order has been filled')
                 position_price = self.cl.position_price(self.symbol, 1)
-                print('Long position:', position_price)
-
-                self.cl.market_tp(symbol=self.symbol,
+                tp = self.cl.market_tp(symbol=self.symbol,
                                   price=position_price * (1 + 0.1 / self.leverage),
                                   positionIdx=1)
-
                 long_step += 1
                 long_price = price * (1 - self.step_map[long_step + 1] / 100)
                 long_qty = round(base_depo * self.value_map[long_step + 1], circling)
                 averaging_long = self.simple_limit_buy(long_qty, long_price)
-                print(f'\tStart price: {price}, long limit price: {long_price} ~ {self.step_map[long_step + 1]}%')
+                print(f'{long_step}. {averaging_long}\n')
 
     async def short_queue_async(self, circling):
         price = self.cl.kline_price(self.symbol)['price']
         short_step = 1
         base_depo = self.depo / price
-        short_order = self.simple_market_sell(round(base_depo * self.value_map[1], circling))
-        await asyncio.sleep(0.1)
+        market_order = self.simple_market_sell(round(base_depo * self.value_map[1], circling))
+        await asyncio.sleep(0)
 
         position_price = self.cl.position_price(self.symbol, 2)
         price = position_price
-        # print(position_price)
-
-        self.cl.market_tp(symbol=self.symbol,
+        market_tp = self.cl.market_tp(symbol=self.symbol,
                           price=position_price * (1 - 0.1 / self.leverage),
                           positionIdx=2)
-
-        short_qty = round(base_depo * self.value_map[short_step + 1], circling)
-        short_price = price * (1 + self.step_map[short_step + 1] / 100)
-        averaging_short = self.simple_limit_sell(short_qty, short_price)
-        print(f'\tStart price: {price}, short limit price: {short_price} ~ {self.step_map[short_step + 1]}%')
+        
+        shortqty = round(base_depo * self.value_map[short_step + 1], circling)
+        shortprice = price * (1 + self.step_map[short_step + 1] / 100)
+        averagingshort = self.simple_limit_sell(shortqty, shortprice)
+        print(f'\tStart price: {price}, short limit price: {shortprice} ~ {self.step_map[short_step + 1]}%')
 
         while True:
-            await asyncio.sleep(0.1)
-            if self.step == 8:
-                return
+            await asyncio.sleep(0)
             position_price = self.cl.position_price(self.symbol, 2)
-            print('Short position:', position_price)
-
             if position_price == 0.0:
-                self.cl.cancel_order(self.symbol, averaging_short['orderId'])
+                print('short position is null')
+                try:
+                    self.cl.cancel_order(self.symbol, averagingshort['orderId'])
+                except BaseException:
+                    print(f'\n\nself.cl.cancel_order(self.symbol, averagingshort["orderId"])\n\n')
                 return
-
-            so_info = self.cl.order_price(averaging_short['orderId'])
-            # price = self.cl.kline_price(self.symbol)['price']
-            short_status = so_info['orderStatus']
-            if short_status == 'Filled':
+            if short_step == 7:
                 position_price = self.cl.position_price(self.symbol, 2)
-                print('Short position:', position_price)
-                self.cl.market_tp(symbol=self.symbol,
-                                  price=position_price * (1 - 0.1 / self.leverage),
-                                  positionIdx=2)
+                market_tp = self.cl.market_tp(symbol=self.symbol,
+                                              price=position_price * (1 - 0.8 / self.leverage),
+                                              positionIdx=2)
+                continue
+            so_info = self.cl.order_price(averagingshort['orderId'])
+            shortstatus = so_info['orderStatus']
+            if shortstatus == 'Filled':
+                print('Short Limit Order has been filled')
+                position_price = self.cl.position_price(self.symbol, 2)
+                market_tp = self.cl.market_tp(symbol=self.symbol,
+                                              price=position_price * (1 - 0.1 / self.leverage),
+                                              positionIdx=2)
                 short_step += 1
-                short_price = price * (1 + self.step_map[short_step + 1] / 100)
-                short_qty = round(base_depo * self.value_map[short_step + 1], circling)
-                averaging_short = self.simple_limit_sell(short_qty, short_price)
-                print(f'\tStart price: {price}, short limit price: {short_price} ~ {self.step_map[short_step + 1]}%')
+                shortprice = price * (1 + self.step_map[short_step + 1] / 100)
+                shortqty = round(base_depo * self.value_map[short_step + 1], circling)
+                averagingshort = self.simple_limit_sell(shortqty, shortprice)
+                print(f'{short_step}. {averagingshort}\n')
 
     async def long_loop(self, circling):
         while True:
-            await self.long_queue_async(circling)
+            try:
+                print("long_loop start")
+                await self.long_queue_async(circling)
+                print("long_loop end")
+            except BaseException:
+                print('lonng loop end. Exeption')
+                continue
 
     async def short_loop(self, circling):
         while True:
-            await self.short_queue_async(circling)
+            try: 
+                print("short_loop start")
+                await self.short_queue_async(circling)
+                print("short_loop end")
+            except BaseException:
+                print('short loop end. Exeption')
+                continue
 
     async def upd_v6(self):
         self.cl.switch_position_mode(self.symbol, 3)
