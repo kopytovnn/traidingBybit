@@ -64,6 +64,7 @@ class Dispatcher:
                 continue
             if limitOrder.status == 'Filled':
                 position.takeProfit()
+                limitOrder.findncancel()
                 step += 1
 
                 limitQty = baseDepo * self.valueMap[step + 1]
@@ -103,6 +104,7 @@ class Dispatcher:
                 continue
             if limitOrder.status == 'Filled':
                 position.takeProfit()
+                limitOrder.findncancel()
                 step += 1
 
                 limitQty = baseDepo * self.valueMap[step + 1]
