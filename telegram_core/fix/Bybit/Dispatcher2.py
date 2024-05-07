@@ -2,7 +2,7 @@ from fix.Bybit.bybitAPI import Client
 from fix.Bybit.Order import *
 from fix.Bybit.Position import *
 
-import gevent, asyncio
+import asyncio
 
 
 class Dispatcher:
