@@ -13,7 +13,7 @@ def start(apikey, secretkey, symbol, deposit):
 
     dp = Dispatcher(cl=cl, symbol=symbol, leverage=leverage, depo=deposit)
     print('start')
-    asyncio.run(dp.asyncEngineStart())
+    asyncio.run(dp.upd_v6())
 
 
 # start(API_KEY, SECRET_KEY, 'XRPUSDT', 500)
