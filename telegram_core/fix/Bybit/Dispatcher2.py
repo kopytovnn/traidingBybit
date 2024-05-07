@@ -71,6 +71,7 @@ class Dispatcher:
                 limitPrice = marketOrder.price * (1 + self.stepMap[step + 1] / 100)
                 limitOrder = ShortLimitOrder(self.cl, self.symbol)
                 limitOrder.open(limitQty, limitPrice)
+                limitOrder.Update()
             await asyncio.sleep(0)
 
 
@@ -111,6 +112,7 @@ class Dispatcher:
                 limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
                 limitOrder = LongLimitOrder(self.cl, self.symbol)
                 limitOrder.open(limitQty, limitPrice)
+                limitOrder.Update()
             await asyncio.sleep(0)
 
     async def shortLoop(self):
