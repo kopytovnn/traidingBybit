@@ -1,7 +1,7 @@
 from fix.Bybit.Order import *
 from fix.Bybit.bybitAPI import *
 from fix.Bybit.config import *
-from fix.Bybit.Dispatcher2 import Dispatcher
+from fix.Bybit.Dispatcher import Dispatcher
 import asyncio
 
 

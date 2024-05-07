@@ -119,19 +119,34 @@ class Dispatcher:
             # print('Long position:', position_price)
             if position_price == 0.0:
                 print('long position is null')
-                self.cl.cancel_order(self.symbol, averaging_long['orderId'])
+                try:
+                    self.cl.cancel_order(self.symbol, averaging_long['orderId'])
+                except BaseException:
+                    print(f'\n\nself.cl.cancel_order(self.symbol, averagingshort["orderId"])\n\n')
+                try:
+                    self.cl.cancel_all_limit_orders(self.symbol, 'Buy')
+                except BaseException:
+                    pass
                 return
             if long_step == 7:
                 position_price = self.cl.position_price(self.symbol, 1)
                 tp = self.cl.market_tp(symbol=self.symbol,
                                   price=position_price * (1 + 0.8 / self.leverage),
                                   positionIdx=1)
+                try:
+                    self.cl.cancel_all_limit_orders(self.symbol, 'Buy')
+                except BaseException:
+                    pass
                 continue
             lo_info = self.cl.order_price(averaging_long['orderId'])
             # price = self.cl.kline_price(self.symbol)['price']
             long_status = lo_info['orderStatus']
             if long_status == 'Filled':
                 print('Long Limit Order has been filled')
+                try:
+                    self.cl.cancel_all_limit_orders(self.symbol, 'Buy')
+                except BaseException:
+                    pass
                 position_price = self.cl.position_price(self.symbol, 1)
                 tp = self.cl.market_tp(symbol=self.symbol,
                                   price=position_price * (1 + 0.1 / self.leverage),
@@ -169,12 +184,20 @@ class Dispatcher:
                     self.cl.cancel_order(self.symbol, averagingshort['orderId'])
                 except BaseException:
                     print(f'\n\nself.cl.cancel_order(self.symbol, averagingshort["orderId"])\n\n')
+                try:
+                    self.cl.cancel_all_limit_orders(self.symbol, 'Sell')
+                except BaseException:
+                    pass
                 return
             if short_step == 7:
                 position_price = self.cl.position_price(self.symbol, 2)
                 market_tp = self.cl.market_tp(symbol=self.symbol,
                                               price=position_price * (1 - 0.8 / self.leverage),
                                               positionIdx=2)
+                try:
+                    self.cl.cancel_all_limit_orders(self.symbol, 'Sell')
+                except BaseException:
+                    pass
                 continue
             so_info = self.cl.order_price(averagingshort['orderId'])
             shortstatus = so_info['orderStatus']
@@ -184,6 +207,10 @@ class Dispatcher:
                 market_tp = self.cl.market_tp(symbol=self.symbol,
                                               price=position_price * (1 - 0.1 / self.leverage),
                                               positionIdx=2)
+                try:
+                    self.cl.cancel_all_limit_orders(self.symbol, 'Sell')
+                except BaseException:
+                    pass
                 short_step += 1
                 shortprice = price * (1 + self.step_map[short_step + 1] / 100)
                 shortqty = round(base_depo * self.value_map[short_step + 1], circling)
@@ -193,21 +220,25 @@ class Dispatcher:
     async def long_loop(self, circling):
         while True:
             try:
+                self.cl.cancel_all_limit_orders(self.symbol, 'Buy')
                 print("long_loop start")
                 await self.long_queue_async(circling)
                 print("long_loop end")
             except BaseException:
                 print('lonng loop end. Exeption')
+                self.cl.cancel_all_limit_orders(self.symbol, 'Buy')
                 continue
 
     async def short_loop(self, circling):
         while True:
             try: 
+                self.cl.cancel_all_limit_orders(self.symbol, 'Sell')
                 print("short_loop start")
                 await self.short_queue_async(circling)
                 print("short_loop end")
             except BaseException:
                 print('short loop end. Exeption')
+                self.cl.cancel_all_limit_orders(self.symbol, 'Sell')
                 continue
 
     async def upd_v6(self):
