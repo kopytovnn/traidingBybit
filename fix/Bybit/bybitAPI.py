@@ -263,6 +263,25 @@ class Client:
         return resp
 
 
+    def all_orders(self, symbol):
+        params = {"category": "linear",
+                  "symbol": symbol,
+                  }
+        resp = self._get('/v5/order/realtime', params)
+        # print(resp)
+        retMsg = resp['retMsg']
+        if retMsg == 'OK':
+            order_list = resp['result']['list']
+            return order_list
+
+    def cancel_all_limit_orders(self, symbol, side):
+        positionidx = {'Sell': 2, 'Buy': 1}[side]
+        resp = self.all_orders(symbol)
+        orders = []
+        for order in resp:
+            if order['orderType'] == 'Limit' and order['side'] == side and order['positionIdx'] == positionidx and order['orderStatus'] == 'New':
+                resp = self.cancel_order(symbol, order['orderId'])
+
 # apikey = config.API_KEY
 # secretkey = config.SECRET_KEY
 # cl = Client(apikey, secretkey)
