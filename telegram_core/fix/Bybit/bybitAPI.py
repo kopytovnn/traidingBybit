@@ -95,7 +95,7 @@ class Client:
         time_stamp = str(self.get_server_time())
         payload = str(params).replace("'", '"')
 
-        recv_window = str(5000)
+        recv_window = str(50000)
         signature = self.genSignature(payload, time_stamp, self.apikey, self.secretkey, recv_window)
         headers = {
             'X-BAPI-API-KEY': self.apikey,
