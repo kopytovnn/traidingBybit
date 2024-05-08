@@ -14,7 +14,9 @@ class Position:
 
     def Update(self):
         positionIdx = self.positionIdxMap[self.side]
-        resp = self.cl.position_price(symbol=self.symbol)
+        resp = self.cl.position_price(symbol=self.symbol,
+                                      positionIdx=positionIdx)
+        # print(resp)
         for position in resp:
             if position['positionIdx'] == positionIdx:
                 self.price = float(position['avgPrice'])

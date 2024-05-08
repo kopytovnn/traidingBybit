@@ -1,7 +1,7 @@
 from fix.Bybit.Order import *
 from fix.Bybit.bybitAPI import *
 from fix.Bybit.config import *
-from fix.Bybit.Dispatcher import Dispatcher
+from fix.Bybit.Dispatcher2 import Dispatcher
 import asyncio
 
 
@@ -13,7 +13,7 @@ def start(apikey, secretkey, symbol, deposit):
 
     dp = Dispatcher(cl=cl, symbol=symbol, leverage=leverage, depo=deposit)
     print('start')
-    asyncio.run(dp.upd_v6())
+    asyncio.run(dp.asyncEngineStart())
 
 
 # start(API_KEY, SECRET_KEY, 'XRPUSDT', 500)

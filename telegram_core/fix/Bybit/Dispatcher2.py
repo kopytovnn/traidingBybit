@@ -31,6 +31,10 @@ class Dispatcher:
         self.cl.set_leverage(self.symbol, self.leverage)
         self.depo = depo / (100 / self.leverage)
 
+        # test
+        # for i in self.stepMap:
+        #     self.stepMap[i] = self.stepMap[i] / 10
+
     def tokenPrice(self) -> float:
         return self.cl.kline_price(self.symbol)['price']
 
@@ -51,7 +55,7 @@ class Dispatcher:
         limitPrice = marketOrder.price * (1 + self.stepMap[step + 1] / 100)
         limitOrder = ShortLimitOrder(self.cl, self.symbol)
         limitOrder.open(limitQty, limitPrice)
-        await asyncio.sleep(0)
+        await asyncio.sleep(1)
 
         while True:
             limitOrder.Update()
@@ -72,7 +76,7 @@ class Dispatcher:
                 limitOrder = ShortLimitOrder(self.cl, self.symbol)
                 limitOrder.open(limitQty, limitPrice)
                 limitOrder.Update()
-            await asyncio.sleep(0)
+            await asyncio.sleep(1)
 
 
     async def longAlgo(self):
@@ -93,7 +97,7 @@ class Dispatcher:
         limitOrder = LongLimitOrder(self.cl, self.symbol)
         limitOrder.open(limitQty, limitPrice)
 
-        await asyncio.sleep(0)
+        await asyncio.sleep(1)
         while True:
             limitOrder.Update()
             position.Update()
@@ -113,14 +117,15 @@ class Dispatcher:
                 limitOrder = LongLimitOrder(self.cl, self.symbol)
                 limitOrder.open(limitQty, limitPrice)
                 limitOrder.Update()
-            await asyncio.sleep(0)
+            await asyncio.sleep(1)
 
     async def shortLoop(self):
         while True:
-            try:
-                await self.shortAlgo()
-            except BaseException:
-                continue
+            # try:
+            #     await self.shortAlgo()
+            # except BaseException:
+            #     continue
+            await self.shortAlgo()
 
     async def longLoop(self):
         while True:
@@ -141,9 +146,9 @@ class Dispatcher:
     async def asyncEngineStart(self):
         self.cl.switch_position_mode(self.symbol, 3)
 
-        task1 = asyncio.create_task(self.longLoop())
+        # task1 = asyncio.create_task(self.longLoop())
         task2 = asyncio.create_task(self.shortLoop())
 
-        await task1
+        # await task1
         await task2
 

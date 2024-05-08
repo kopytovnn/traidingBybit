@@ -245,6 +245,7 @@ class Client:
             "category": "linear",
         }
         resp = self._get('/v5/position/list', params)
+        return resp['result']['list']
 
         if resp['retMsg'] != 'OK':
             print(f'WARNING!!! position_price(self, {symbol}, {positionIdx})', resp)
