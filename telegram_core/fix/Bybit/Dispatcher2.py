@@ -121,11 +121,11 @@ class Dispatcher:
 
     async def shortLoop(self):
         while True:
-            # try:
-            #     await self.shortAlgo()
-            # except BaseException:
-            #     continue
-            await self.shortAlgo()
+            try:
+                await self.shortAlgo()
+            except BaseException:
+                continue
+            # await self.shortAlgo()
 
     async def longLoop(self):
         while True:
