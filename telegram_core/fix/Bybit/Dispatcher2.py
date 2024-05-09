@@ -54,7 +54,7 @@ class Dispatcher:
         limitQty = baseDepo * self.valueMap[step + 1]
         limitPrice = marketOrder.price * (1 + self.stepMap[step + 1] / 100)
         limitOrder = ShortLimitOrder(self.cl, self.symbol)
-        limitOrder.open(limitQty, limitPrice)
+        limitOrder.open(position.qty / position.price, limitPrice)
         await asyncio.sleep(1)
 
         while True:
@@ -74,7 +74,7 @@ class Dispatcher:
                 limitQty = baseDepo * self.valueMap[step + 1]
                 limitPrice = marketOrder.price * (1 + self.stepMap[step + 1] / 100)
                 limitOrder = ShortLimitOrder(self.cl, self.symbol)
-                limitOrder.open(limitQty, limitPrice)
+                limitOrder.open(position.qty / position.price, limitPrice)
                 limitOrder.Update()
             await asyncio.sleep(1)
 
@@ -95,7 +95,7 @@ class Dispatcher:
         limitQty = baseDepo * self.valueMap[step + 1]
         limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
         limitOrder = LongLimitOrder(self.cl, self.symbol)
-        limitOrder.open(limitQty, limitPrice)
+        limitOrder.open(position.qty / position.price, limitPrice)
 
         await asyncio.sleep(1)
         while True:
@@ -115,7 +115,7 @@ class Dispatcher:
                 limitQty = baseDepo * self.valueMap[step + 1]
                 limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
                 limitOrder = LongLimitOrder(self.cl, self.symbol)
-                limitOrder.open(limitQty, limitPrice)
+                limitOrder.open(position.qty / position.price, limitPrice)
                 limitOrder.Update()
             await asyncio.sleep(1)
 
@@ -146,9 +146,9 @@ class Dispatcher:
     async def asyncEngineStart(self):
         self.cl.switch_position_mode(self.symbol, 3)
 
-        # task1 = asyncio.create_task(self.longLoop())
+        task1 = asyncio.create_task(self.longLoop())
         task2 = asyncio.create_task(self.shortLoop())
 
-        # await task1
+        await task1
         await task2
 
