@@ -8,6 +8,16 @@ import hashlib
 
 # import config
 
+def safety(func):
+    def wrapper(*args, **kwargs):
+        # код до оригинальной функции
+        r = func(*args, **kwargs)
+        if 'restMsg' in r and r['restMsg'] != 'OK':
+            r = func(*args, **kwargs)
+        # код после оригинальной функции
+        return r
+    return wrapper # возвращает другую функцию
+
 
 class Client:
     SAPI = 'https://api-testnet.bybit.com'
@@ -95,7 +105,7 @@ class Client:
         time_stamp = str(self.get_server_time())
         payload = str(params).replace("'", '"')
 
-        recv_window = str(50000)
+        recv_window = str(5000)
         signature = self.genSignature(payload, time_stamp, self.apikey, self.secretkey, recv_window)
         headers = {
             'X-BAPI-API-KEY': self.apikey,
@@ -107,7 +117,7 @@ class Client:
         }
         response = requests.Session().request('POST', url, headers=headers, data=payload)
         return response.json()
-
+    @safety
     def switch_position_mode(self, symbol, mode=3):
         params = {
             "category": 'linear',
@@ -115,8 +125,10 @@ class Client:
             "symbol": symbol,
         }
         resp = self._postOrder('/v5/position/switch-mode', params)
+        return resp
         # print(resp)
 
+    @safety
     def market_open_order(self, symbol='SOLUSDT', side='Buy', qty=10, takeProfit=-1):
         params = {"symbol": symbol,
                   "side": side,
@@ -142,6 +154,7 @@ class Client:
         print(resp)
         return {"status": False, "restMsg": retMsg}
 
+    @safety
     def limit_open_order(self, symbol='SOLUSDT', side='Buy', price=62000, qty=10, category='linear', takeProfit=-1):
         params = {"symbol": symbol,
                   "side": side,
@@ -177,6 +190,7 @@ class Client:
     #                 return {'status': True, 'price': float(order['price']), 'orderStatus': order['orderStatus']}
     #         return {'status': False, 'retMsg': 'Order not found'}
     #     return {'status': False, 'retMsg': retMsg}
+    @safety
     def order_price(self, orderId):
         params = {"category": "linear",
                   "orderId": orderId}
@@ -191,6 +205,7 @@ class Client:
             return {'status': True, 'price': order['avgPrice'], 'orderStatus': order['orderStatus'], 'qty': order['qty']}
         return {'status': False, 'retMsg': retMsg}
 
+    @safety
     def amend_order(self, orderId, takeProfit):
         params = {
             "orderId": orderId,
@@ -200,7 +215,9 @@ class Client:
             "tpLimitPrice": takeProfit
         }
         resp = self._postOrder('/v5/order/amend', params)
+        return resp
 
+    @safety
     def set_trading_stop(self, symbol, tp, size, positionIdx):
         params = {
             "category": "linear",
@@ -217,9 +234,9 @@ class Client:
             "positionIdx": positionIdx
         }
         resp = self._postOrder('/v5/position/trading-stop', params)
-        if resp['retMsg'] != 'OK':
-            print(f'WARNING!!! set_trading_stop(self, {symbol}, {tp}, {size}, {positionIdx})', resp)
+        return resp
 
+    @safety
     def set_leverage(self, symbol, leverage):
         params = {"category": "linear",
                   "symbol": symbol,
@@ -228,6 +245,7 @@ class Client:
         resp = self._postOrder('/v5/position/set-leverage', params)
         return {'status': resp['retMsg'] == 'OK', 'retMsg': resp['retMsg']}
 
+    @safety
     def kline_price(self, symbol):
         params = {"category": "linear",
                   "symbol": symbol,
@@ -239,6 +257,7 @@ class Client:
             return {'status': True, 'price': float(resp['result']['list'][0][4])}
         return {'status': False, 'retMsg': resp['retMsg']}
 
+    @safety
     def position_price(self, symbol, positionIdx):
         params = {
             "symbol": symbol,
@@ -258,6 +277,7 @@ class Client:
             print(f'WARNING!!! position_price(self, {symbol}, {positionIdx})', resp)
             print(f'resp["result"] = {resp["result"]}')
 
+    @safety
     def cancel_order(self, symbol, orderId):
         params = {
             'category': "linear",
@@ -266,9 +286,9 @@ class Client:
         }
 
         resp = self._postOrder('/v5/order/cancel', params)
-        if resp['retMsg'] != 'OK':
-            print(f'WARNING!!! cancel_order(self, {symbol}, {orderId})'), resp
+        return resp
 
+    @safety
     def all_orders(self, symbol):
         params = {"category": "linear",
                   "symbol": symbol,
@@ -280,6 +300,7 @@ class Client:
             order_list = resp['result']['list']
             return order_list
 
+    @safety
     def cancel_all_limit_orders(self, symbol, side):
         positionidx = {'Sell': 2, 'Buy': 1}[side]
         resp = self.all_orders(symbol)
@@ -287,6 +308,7 @@ class Client:
         for order in resp:
             if order['orderType'] == 'Limit' and order['side'] == side and order['positionIdx'] == positionidx and order['orderStatus'] == 'New':
                 resp = self.cancel_order(symbol, order['orderId'])
+        return resp
 
 # apikey = config.API_KEY
 # secretkey = config.SECRET_KEY
