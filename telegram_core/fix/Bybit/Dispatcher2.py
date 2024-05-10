@@ -85,7 +85,6 @@ class Dispatcher:
                 limitOrder.open(position.qty / position.price, limitPrice)
                 limitOrder.Update()
                 print('\n', position, '\n', limitOrder)
-                return
             await asyncio.sleep(1)
 
 
@@ -136,7 +135,6 @@ class Dispatcher:
                 limitOrder.open(position.qty / position.price, limitPrice)
                 limitOrder.Update()
                 print('\n', position, '\n', limitOrder)
-                return
             await asyncio.sleep(1)
 
     async def shortLoop(self):
