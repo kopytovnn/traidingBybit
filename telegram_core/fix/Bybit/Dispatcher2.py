@@ -146,7 +146,10 @@ class Dispatcher:
             # except BaseException:
             #     continue
             print('Short Algo started')
-            await self.shortAlgo()
+            try:
+                await self.shortAlgo()
+            except BaseException:
+                pass
             print('Short Algo ended')
 
     async def longLoop(self):
@@ -157,7 +160,10 @@ class Dispatcher:
         #         continue
         while True:
             print('Long Algo started')
-            await self.longAlgo()
+            try:
+                await self.longAlgo()
+            except BaseException:
+                pass
             print('Long Algo ended')
 
 
