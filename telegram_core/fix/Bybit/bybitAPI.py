@@ -180,8 +180,11 @@ class Client:
         
         retMsg = resp['retMsg']
         if retMsg == 'OK':
-            order = resp['result']['list'][0]
-            return {'status': True, 'price': order['avgPrice'], 'orderStatus': order['orderStatus'], 'qty': order['qty']}
+            for order in resp['result']['list']:
+                if order['orderId'] == orderId:
+                    return {'status': True, 'price': order['avgPrice'], 'orderStatus': order['orderStatus'], 'qty': order['qty']}
+            # order = resp['result']['list'][0]
+            # return {'status': True, 'price': order['avgPrice'], 'orderStatus': order['orderStatus'], 'qty': order['qty']}
         return {'status': False, 'retMsg': retMsg}
 
     def amend_order(self, orderId, takeProfit):

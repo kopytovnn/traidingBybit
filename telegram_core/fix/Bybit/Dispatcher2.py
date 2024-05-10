@@ -75,6 +75,7 @@ class Dispatcher:
                 continue
             if limitOrder.status == 'Filled':
                 print('\n', position, '\n', limitOrder)
+                position.Update()
                 position.takeProfit()
                 limitOrder.findncancel()
                 step += 1
@@ -125,6 +126,7 @@ class Dispatcher:
                 continue
             if limitOrder.status == 'Filled':
                 print('\n', position, '\n', limitOrder)
+                position.Update()
                 position.takeProfit()
                 limitOrder.findncancel()
                 step += 1

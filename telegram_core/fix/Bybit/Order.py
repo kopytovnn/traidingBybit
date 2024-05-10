@@ -51,6 +51,7 @@ class Order:
         try:
             self.price = float(resp['price'])
         except ValueError:
+            # print('Uncorrect price', resp)
             pass
 
 class MarketOrder(Order):

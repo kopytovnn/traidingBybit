@@ -18,6 +18,7 @@ class   Position:
                                       positionIdx=positionIdx)
         # print(resp)
         for position in resp:
+            # print('\t', position, positionIdx)
             if position['positionIdx'] == positionIdx:
                 self.price = float(position['avgPrice'])
                 try:
