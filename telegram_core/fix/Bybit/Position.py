@@ -1,7 +1,7 @@
 from fix.Bybit.bybitAPI import Client
 
 
-class Position:
+class   Position:
     positionIdxMap = {'Buy': 1, 'Sell': 2}
 
     def __init__(self, cl: Client, symbol: str, side: str, leverage: int) -> None:

@@ -31,44 +31,35 @@ class Client:
         return signature
 
     def _get(self, url, params=None):
-        r1 = False
-        while not r1:
-            try:
-                r1 = requests.head(self.SAPI, timeout=5000)
-            except:
-                print('No internet')
-                time.sleep(2)
-
-        if params is None:
-            params = {}
-        url = self.SAPI + url
-        paramsToSend = dict()
-        paramsToSend['api_key'] = self.apikey
-        for key in params:
-            paramsToSend[key] = params[key]
-        serverTime = self.get_server_time()
-        paramsToSend['timestamp'] = str(serverTime)
-        sortParamsToSend = dict()
-        for key in sorted(paramsToSend):
-            sortParamsToSend[key] = paramsToSend[key]
-        paramsForHash = dict()
-        for key in sortParamsToSend:
-            paramsForHash[key] = sortParamsToSend[key]
-        paramsForHash = urlencode(paramsForHash)
-        signature = hmac.new(self.secretkey.encode('utf8'), paramsForHash.encode('utf8'), hashlib.sha256).hexdigest()
-        sortParamsToSend['sign'] = signature
-
-        try:
+        def aye(url, params):
+            if params is None:
+                params = {}
+            url = self.SAPI + url
+            paramsToSend = dict()
+            paramsToSend['api_key'] = self.apikey
+            for key in params:
+                paramsToSend[key] = params[key]
+            serverTime = self.get_server_time()
+            paramsToSend['timestamp'] = str(serverTime)
+            sortParamsToSend = dict()
+            for key in sorted(paramsToSend):
+                sortParamsToSend[key] = paramsToSend[key]
+            paramsForHash = dict()
+            for key in sortParamsToSend:
+                paramsForHash[key] = sortParamsToSend[key]
+            paramsForHash = urlencode(paramsForHash)
+            signature = hmac.new(self.secretkey.encode('utf8'), paramsForHash.encode('utf8'), hashlib.sha256).hexdigest()
+            sortParamsToSend['sign'] = signature
             response = get(url, params=sortParamsToSend, headers={}).json()
-        except requests.exceptions.ConnectionError as e:
-            print('GET ERROR', url, params)
-            response = {'retMsg': "Connection error"}
+            return response
+        response = aye(url, params)
         while response['retMsg'] not in GOOD_MSGS:
             print(response)
             try:
-                response = self._get(url, params)
+                response = aye(url, params)
                 print(response)
             except requests.exceptions.ConnectionError:
+                print('Error', url, params)
                 time.sleep(1)
                 continue
         return response
