@@ -64,4 +64,4 @@ class LongPosition(Position):
     
     def takeProfit80(self):
         price = self.price * (1 + 0.8 / self.leverage)
-        return super().takeProfit(price, 'Sell')
+        return super().takeProfit(price, 'Buy')
