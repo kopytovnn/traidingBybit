@@ -54,10 +54,10 @@ class Client:
             return response
         response = aye(url, params)
         while response['retMsg'] not in GOOD_MSGS:
-            print(response)
+            print(url, params, response)
             try:
                 response = aye(url, params)
-                print(response)
+                print(url, params, response)
             except requests.exceptions.ConnectionError:
                 print('Error', url, params)
                 time.sleep(1)
@@ -100,10 +100,10 @@ class Client:
             return response
         response = aye(url, params)
         while response['retMsg'] not in GOOD_MSGS:
-            print(response)
+            print(url, params, response)
             try:
                 response = aye(url, params)
-                print(response)
+                print(url, params, response)
             except requests.exceptions.ConnectionError:
                 print('Error', url, params)
                 time.sleep(1)

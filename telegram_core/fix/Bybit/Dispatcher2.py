@@ -46,27 +46,35 @@ class Dispatcher:
         qty = baseDepo * self.valueMap[1]
         marketOrder = ShortMarketOrder(self.cl, self.symbol)
         marketOrder.open(qty)
+        print(marketOrder)
 
         position = ShortPosition(self.cl, self.symbol, self.leverage)
         position.Update()
         position.takeProfit()
+        print(position)
 
         limitQty = baseDepo * self.valueMap[step + 1]
         limitPrice = marketOrder.price * (1 + self.stepMap[step + 1] / 100)
         limitOrder = ShortLimitOrder(self.cl, self.symbol)
         limitOrder.open(position.qty / position.price, limitPrice)
+        print(limitOrder)
         await asyncio.sleep(1)
 
         while True:
             limitOrder.Update()
             position.Update()
             if position.price == 0:
+                print('\n', position, '\n', limitOrder)
                 limitOrder.findncancel()
+                print('\n', position, '\n', limitOrder)
                 return
             if step == 7:
+                print('\n', position, '\n', limitOrder)
                 position.takeProfit80()
+                print('\n', position, '\n', limitOrder)
                 continue
             if limitOrder.status == 'Filled':
+                print('\n', position, '\n', limitOrder)
                 position.takeProfit()
                 limitOrder.findncancel()
                 step += 1
@@ -76,6 +84,8 @@ class Dispatcher:
                 limitOrder = ShortLimitOrder(self.cl, self.symbol)
                 limitOrder.open(position.qty / position.price, limitPrice)
                 limitOrder.Update()
+                print('\n', position, '\n', limitOrder)
+                return
             await asyncio.sleep(1)
 
 
@@ -87,27 +97,35 @@ class Dispatcher:
         qty = baseDepo * self.valueMap[1]
         marketOrder = LongMarketOrder(self.cl, self.symbol)
         marketOrder.open(qty)
+        print(marketOrder)
 
         position = LongPosition(self.cl, self.symbol, self.leverage)
         position.Update()
         position.takeProfit()
+        print(position)
 
         limitQty = baseDepo * self.valueMap[step + 1]
         limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
         limitOrder = LongLimitOrder(self.cl, self.symbol)
         limitOrder.open(position.qty / position.price, limitPrice)
+        print(limitOrder)
 
         await asyncio.sleep(1)
         while True:
             limitOrder.Update()
             position.Update()
             if position.price == 0:
+                print('\n', position, '\n', limitOrder)
                 limitOrder.findncancel()
+                print('\n', position, '\n', limitOrder)
                 return
             if step == 7:
+                print('\n', position, '\n', limitOrder)
                 position.takeProfit80()
+                print('\n', position, '\n', limitOrder)
                 continue
             if limitOrder.status == 'Filled':
+                print('\n', position, '\n', limitOrder)
                 position.takeProfit()
                 limitOrder.findncancel()
                 step += 1
@@ -117,6 +135,8 @@ class Dispatcher:
                 limitOrder = LongLimitOrder(self.cl, self.symbol)
                 limitOrder.open(position.qty / position.price, limitPrice)
                 limitOrder.Update()
+                print('\n', position, '\n', limitOrder)
+                return
             await asyncio.sleep(1)
 
     async def shortLoop(self):
@@ -125,7 +145,9 @@ class Dispatcher:
             #     await self.shortAlgo()
             # except BaseException:
             #     continue
+            print('Short Algo started')
             await self.shortAlgo()
+            print('Short Algo ended')
 
     async def longLoop(self):
         # while True:
@@ -134,7 +156,9 @@ class Dispatcher:
         #     except BaseException:
         #         continue
         while True:
+            print('Long Algo started')
             await self.longAlgo()
+            print('Long Algo ended')
 
 
     def geventEngineStart(self):
