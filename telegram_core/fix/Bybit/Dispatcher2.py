@@ -43,16 +43,32 @@ class Dispatcher:
         step = 1
         baseDepo = self.depo / startPrice
 
-        qty = baseDepo * self.valueMap[1]
-        marketOrder = ShortMarketOrder(self.cl, self.symbol)
-        marketOrder.open(qty)
-        print(marketOrder)
-
         position = ShortPosition(self.cl, self.symbol, self.leverage)
         position.Update()
-        position.takeProfit()
-        print(position)
+        if position.price != 0:
+            print('Short pos exists!')
+            position.takeProfit()
+            print('Short tp corrected')
+            limitOrder = ShortLimitOrder(self.cl, self.symbol)
+            limitOrder.findncancel()
+            print('Short limit orders have been canceled')
+            start_qty = baseDepo * self.valueMap[1]
+            # print(start_qty, position.qty)
+            step = int(round(position.qty * position.price / start_qty, 0)) + 1
+            marketOrder = ShortMarketOrder(self.cl, self.symbol)
+            marketOrder.price = position.price
+            print('Short step', step)
+        else:
+            qty = baseDepo * self.valueMap[1]
+            marketOrder = ShortMarketOrder(self.cl, self.symbol)
+            marketOrder.open(qty)
+            print(marketOrder)
 
+            position = ShortPosition(self.cl, self.symbol, self.leverage)
+            position.Update()
+            position.takeProfit()
+            print(position)
+            
         limitQty = baseDepo * self.valueMap[step + 1]
         limitPrice = marketOrder.price * (1 + self.stepMap[step + 1] / 100)
         limitOrder = ShortLimitOrder(self.cl, self.symbol)
@@ -94,15 +110,31 @@ class Dispatcher:
         step = 1
         baseDepo = self.depo / startPrice
 
-        qty = baseDepo * self.valueMap[1]
-        marketOrder = LongMarketOrder(self.cl, self.symbol)
-        marketOrder.open(qty)
-        print(marketOrder)
-
         position = LongPosition(self.cl, self.symbol, self.leverage)
         position.Update()
-        position.takeProfit()
-        print(position)
+        if position.price != 0:
+            print('Long pos exists!')
+            position.takeProfit()
+            print('Long tp corrected')
+            limitOrder = LongLimitOrder(self.cl, self.symbol)
+            limitOrder.findncancel()
+            print('Long limit orders have been canceled')
+            start_qty = baseDepo * self.valueMap[1]
+            # print(start_qty, position.qty)
+            step = int(round(position.qty * position.price / start_qty, 0)) + 1
+            marketOrder = LongMarketOrder(self.cl, self.symbol)
+            marketOrder.price = position.price
+            print('Long step', step)
+        else:
+            qty = baseDepo * self.valueMap[1]
+            marketOrder = LongMarketOrder(self.cl, self.symbol)
+            marketOrder.open(qty)
+            print(marketOrder)
+
+            position = LongPosition(self.cl, self.symbol, self.leverage)
+            position.Update()
+            position.takeProfit()
+            print(position)
 
         limitQty = baseDepo * self.valueMap[step + 1]
         limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
@@ -111,6 +143,7 @@ class Dispatcher:
         print(limitOrder)
 
         await asyncio.sleep(1)
+
         while True:
             limitOrder.Update()
             position.Update()
@@ -148,8 +181,8 @@ class Dispatcher:
             print('Short Algo started')
             try:
                 await self.shortAlgo()
-            except BaseException:
-                pass
+            except BaseException as e:
+                print(e)
             print('Short Algo ended')
 
     async def longLoop(self):
@@ -162,8 +195,8 @@ class Dispatcher:
             print('Long Algo started')
             try:
                 await self.longAlgo()
-            except BaseException:
-                pass
+            except BaseException as e:
+                print(e)
             print('Long Algo ended')
 
 

@@ -101,14 +101,19 @@ class LimitOrder(Order):
         resp = self.cl.cancel_order(self.symbol, self.orderId)
         self.Update()
     
+    # def findncancel(self, side):
+    #     positionidx = self.positionIdxMap[side]
+    #     resp = self.cl.all_orders(self.symbol)
+    #     orders = []
+    #     for order in resp:
+    #         if order['orderType'] == 'Limit' and order['side'] == side and order['positionIdx'] == positionidx and order['orderStatus'] == 'New':
+    #             resp = self.cl.cancel_order(self.symbol, order['orderId'])
+    #     self.Update()
+
     def findncancel(self, side):
-        positionidx = self.positionIdxMap[side]
-        resp = self.cl.all_orders(self.symbol)
-        orders = []
-        for order in resp:
-            if order['orderType'] == 'Limit' and order['side'] == side and order['positionIdx'] == positionidx and order['orderStatus'] == 'New':
-                resp = self.cl.cancel_order(self.symbol, order['orderId'])
-        self.Update()
+        resp = self.cl.cancel_all_limit_orders(self.symbol, side)
+        self.Update
+        return resp
 
 
 class ShortLimitOrder(LimitOrder):
