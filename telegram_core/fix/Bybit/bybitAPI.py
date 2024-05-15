@@ -9,6 +9,7 @@ from requests.adapters import HTTPAdapter, Retry
 
 
 GOOD_MSGS = ['OK', 'leverage not modified', 'Position mode is not modified', 'not modified']
+ERROR_MSGS = ["can not set tp/sl/ts for zero position"]
 
 
 class Client:
@@ -53,6 +54,8 @@ class Client:
             response = get(url, params=sortParamsToSend, headers={}).json()
             return response
         response = aye(url, params)
+        if response['retMsg'] in ERROR_MSGS or 'TakeProfit' in response['retMsg']:
+            raise Exception
         while response['retMsg'] not in GOOD_MSGS:
             print(url, params, response)
             try:
@@ -63,20 +66,6 @@ class Client:
                 time.sleep(1)
                 continue
         return response
-
-    def market_tp(self, symbol, price, positionIdx):
-        params = {
-            "category": "linear",
-            "symbol": symbol,
-            "takeProfit": str(price),
-            "tpTriggerBy": "MarkPrice",
-            "tpslMode": "Full",
-            "tpOrderType": "Market",
-            "positionIdx": positionIdx
-        }
-        resp = self._postOrder('/v5/position/trading-stop', params)
-        # if resp['retMsg'] != 'OK':
-        #     print(f'WARNING!!! market_tp(self, {symbol}, {price}, {positionIdx})', resp)
 
     def _postOrder(self, url, params=None):
         def aye(url, params):
@@ -99,6 +88,8 @@ class Client:
             response = requests.Session().request('POST', url, headers=headers, data=payload).json()
             return response
         response = aye(url, params)
+        if response['retMsg'] in ERROR_MSGS or 'TakeProfit' in response['retMsg']:
+            raise Exception
         while response['retMsg'] not in GOOD_MSGS:
             print(url, params, response)
             try:
@@ -109,6 +100,18 @@ class Client:
                 time.sleep(1)
                 continue
         return response
+    
+    def market_tp(self, symbol, price, positionIdx):
+        params = {
+            "category": "linear",
+            "symbol": symbol,
+            "takeProfit": str(price),
+            "tpTriggerBy": "MarkPrice",
+            "tpslMode": "Full",
+            "tpOrderType": "Market",
+            "positionIdx": positionIdx
+        }
+        resp = self._postOrder('/v5/position/trading-stop', params)
 
     def switch_position_mode(self, symbol, mode=3):
         params = {
