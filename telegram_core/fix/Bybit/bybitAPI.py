@@ -286,6 +286,15 @@ class Client:
             if order['orderType'] == 'Limit' and order['side'] == side and order['positionIdx'] == positionidx and order['orderStatus'] == 'New':
                 resp = self.cancel_order(symbol, order['orderId'])
         return resp
+    
+    def get_all_partionally_filled_orders(self, symbol, side):
+        positionidx = {'Sell': 2, 'Buy': 1}[side]
+        resp = self.all_orders(symbol)
+        orders = []
+        for order in resp:
+            if order['orderStatus'] == 'PartiallyFilled' and order['side'] == side and order['positionIdx'] == positionidx and order['orderType'] == 'Limit':
+                orders.append(order)
+        return orders
 
 # apikey = config.API_KEY
 # secretkey = config.SECRET_KEY

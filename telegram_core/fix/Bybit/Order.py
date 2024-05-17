@@ -100,6 +100,14 @@ class LimitOrder(Order):
     def cancel(self):
         resp = self.cl.cancel_order(self.symbol, self.orderId)
         self.Update()
+
+    def partional_orders(self, side):
+        resp = self.cl.get_all_partionally_filled_orders(self.symbol, side)
+        qty = 0
+        for i in resp:
+            qty += float(i['cumExecValue'])
+            self.cl.cancel_order(self.symbol, i['orderId'])
+        return qty
     
     # def findncancel(self, side):
     #     positionidx = self.positionIdxMap[side]
@@ -126,6 +134,9 @@ class ShortLimitOrder(LimitOrder):
     def findncancel(self):
         return super().findncancel('Sell')
     
+    def partional_orders(self):
+        return super().partional_orders('Sell')
+    
 
 class LongLimitOrder(LimitOrder):
     def __init__(self, cl: Client, symbol: str) -> None:
@@ -136,6 +147,9 @@ class LongLimitOrder(LimitOrder):
     
     def findncancel(self):
         return super().findncancel('Buy')
+    
+    def partional_orders(self):
+        return super().partional_orders('Buy')
     
 # class TakeProfitOrder(Order):
 #     def __init__(self, cl: Client, symbol: str) -> None:

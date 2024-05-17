@@ -110,6 +110,8 @@ class Dispatcher:
         step = 1
         baseDepo = self.depo / startPrice
 
+        minus = 0
+
         position = LongPosition(self.cl, self.symbol, self.leverage)
         position.Update()
         if position.price != 0:
@@ -117,11 +119,15 @@ class Dispatcher:
             position.takeProfit()
             print('Long tp corrected')
             limitOrder = LongLimitOrder(self.cl, self.symbol)
+            partional_orders = limitOrder.partional_orders()
             limitOrder.findncancel()
             print('Long limit orders have been canceled')
             start_qty = baseDepo * self.valueMap[1]
             # print(start_qty, position.qty)
             step = int(round(position.qty * position.price / start_qty, 0)) + 1
+            # print(f'Good amt: {start_qty * 2 ** step}, Real: {(position.qty / position.price)}')
+            # if position.qty / position.price > start_qty * 2 ** step:
+            #     minus = position.qty / position.price - start_qty * 2 ** step
             marketOrder = LongMarketOrder(self.cl, self.symbol)
             marketOrder.price = position.price
             print('Long step', step)
@@ -136,10 +142,10 @@ class Dispatcher:
             position.takeProfit()
             print(position)
 
-        limitQty = baseDepo * self.valueMap[step + 1]
+        limitQty = baseDepo * self.valueMap[step + 1] - minus
         limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
         limitOrder = LongLimitOrder(self.cl, self.symbol)
-        limitOrder.open(position.qty / position.price, limitPrice)
+        limitOrder.open((position.qty - minus) / position.price, limitPrice)
         print(limitOrder)
 
         await asyncio.sleep(1)
