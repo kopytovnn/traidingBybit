@@ -73,6 +73,7 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
     # task = asyncio.create_task(bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
     # task = asyncio.to_thread(bybit_start, bybit_start(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
     p = Process(target=start, args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
+    p.daemon = True
     # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
     p.start()
     bybit_tasks[message.chat.id] = p
@@ -83,8 +84,11 @@ async def bybit_deposiot_chosen(message: types.Message, state: FSMContext):
 
 @router.callback_query(F.data == "bybit_stop")
 async def bybit_stop(callback: types.CallbackQuery):
-    bybit_tasks[callback.message.chat.id].join()
-    bybit_tasks[callback.message.chat.id].close()
+    print(bybit_tasks[callback.message.chat.id])
+    # bybit_tasks[callback.message.chat.id].join()
+    # bybit_tasks[callback.message.chat.id].close()
+    bybit_tasks[callback.message.chat.id].terminate()
+    # bybit_tasks[callback.message.chat.id].join()
 
     await callback.message.answer("ByBit останвлен")
 
