@@ -1,6 +1,6 @@
 from sqlalchemy import MetaData, Table, String, Integer, Column, Text, DateTime, Boolean, ForeignKey, Date
 from sqlalchemy.orm import declarative_base, relationship
-from models.base import Base
+from app.handlers.fix.db.models.base import Base
 # from ...admin_core.app.handlers import add_new_user
 
 
