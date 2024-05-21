@@ -51,20 +51,22 @@ class Client:
             paramsForHash = urlencode(paramsForHash)
             signature = hmac.new(self.secretkey.encode('utf8'), paramsForHash.encode('utf8'), hashlib.sha256).hexdigest()
             sortParamsToSend['sign'] = signature
-            response = get(url, params=sortParamsToSend, headers={}).json()
+            response = get(url, params=sortParamsToSend, headers={}, timeout=5).json()
             return response
-        response = aye(url, params)
-        if response['retMsg'] in ERROR_MSGS or 'TakeProfit' in response['retMsg']:
-            raise Exception
-        while response['retMsg'] not in GOOD_MSGS:
-            print(url, params, response)
+        # response = aye(url, params)
+        response = None
+        while True:
             try:
                 response = aye(url, params)
-                print(url, params, response)
+                if response['retMsg'] in ERROR_MSGS or 'TakeProfit' in response['retMsg']:
+                    raise Exception
+                if response['retMsg'] not in GOOD_MSGS:
+                    continue
+                return response
             except requests.exceptions.ConnectionError:
-                print('Error', url, params)
-                time.sleep(1)
-                continue
+                print('-')
+            except requests.exceptions.Timeout:
+                print('timeout')
         return response
 
     def _postOrder(self, url, params=None):
@@ -85,21 +87,22 @@ class Client:
                 'X-BAPI-RECV-WINDOW': recv_window,
                 'Content-Type': 'application/json',
             }
-            response = requests.Session().request('POST', url, headers=headers, data=payload).json()
+            response = requests.Session().request('POST', url, headers=headers, data=payload, timeout=5).json()
             return response
-        response = aye(url, params)
-        if response['retMsg'] in ERROR_MSGS or 'TakeProfit' in response['retMsg']:
-            raise Exception
-        while response['retMsg'] not in GOOD_MSGS:
-            print(url, params, response)
+        response = None
+        while True:
             try:
                 response = aye(url, params)
-                print(url, params, response)
+                if response['retMsg'] in ERROR_MSGS or 'TakeProfit' in response['retMsg']:
+                    raise Exception
+                if response['retMsg'] not in GOOD_MSGS:
+                    continue
+                return response
             except requests.exceptions.ConnectionError:
-                print('Error', url, params)
-                time.sleep(1)
-                continue
-        return response
+                print('-')
+            except requests.exceptions.Timeout:
+                print('timeout')
+        # return response
     
     def market_tp(self, symbol, price, positionIdx):
         params = {
