@@ -33,7 +33,7 @@ class Dispatcher:
 
         # test
         # for i in self.stepMap:
-        #     self.stepMap[i] = self.stepMap[i] / 10
+        #     self.stepMap[i] = self.stepMap[2] / 100
 
     def tokenPrice(self) -> float:
         return self.cl.kline_price(self.symbol)['price']
@@ -70,6 +70,8 @@ class Dispatcher:
             print(position)
             
         limitQty = baseDepo * self.valueMap[step + 1]
+        print(step + 1)
+
         limitPrice = marketOrder.price * (1 + self.stepMap[step + 1] / 100)
         limitOrder = ShortLimitOrder(self.cl, self.symbol)
         limitOrder.open(position.qty / position.price, limitPrice)
@@ -77,20 +79,24 @@ class Dispatcher:
         await asyncio.sleep(1)
 
         while True:
+            print('Short', step)
             limitOrder.Update()
             position.Update()
             if position.price == 0:
                 print('\n', position, '\n', limitOrder)
                 limitOrder.findncancel()
                 print('\n', position, '\n', limitOrder)
+                print('short pos is null')
                 return
-            if step == 7:
-                print('\n', position, '\n', limitOrder)
-                position.takeProfit80()
-                print('\n', position, '\n', limitOrder)
-                continue
-            if limitOrder.status == 'Filled':
-                print('\n', position, '\n', limitOrder)
+            # if step == 8:
+            #     print('\n', position, '\n', limitOrder)
+            #     position.takeProfit80()
+            #     print('Step 8')
+            #     step += 1
+            #     print('\n', position, '\n', limitOrder)
+            #     continue
+            if limitOrder.status == 'Filled' and step < 7:
+                print('\n', position, '\n', limitOrder, 'short limit irder filled')
                 position.Update()
                 position.takeProfit()
                 limitOrder.findncancel()
@@ -102,6 +108,13 @@ class Dispatcher:
                 limitOrder.open(position.qty / position.price, limitPrice)
                 limitOrder.Update()
                 print('\n', position, '\n', limitOrder)
+            if limitOrder.status == 'Filled' and step == 7:
+                print('\n', position, '\n', limitOrder)
+                position.takeProfit80()
+                print('Step 8')
+                step += 1
+                print('\n', position, '\n', limitOrder)
+                continue
             await asyncio.sleep(1)
 
 
@@ -151,20 +164,24 @@ class Dispatcher:
         await asyncio.sleep(1)
 
         while True:
+            print('Long', step)
             limitOrder.Update()
             position.Update()
             if position.price == 0:
                 print('\n', position, '\n', limitOrder)
                 limitOrder.findncancel()
                 print('\n', position, '\n', limitOrder)
+                print('long pos is null')
                 return
-            if step == 7:
-                print('\n', position, '\n', limitOrder)
-                position.takeProfit80()
-                print('\n', position, '\n', limitOrder)
-                continue
-            if limitOrder.status == 'Filled':
-                print('\n', position, '\n', limitOrder)
+            # if step == 7:
+            #     print('\n', position, '\n', limitOrder)
+            #     position.takeProfit80()
+            #     print('Step 8')
+            #     step += 1
+            #     print('\n', position, '\n', limitOrder)
+            #     continue
+            if limitOrder.status == 'Filled' and step < 7:
+                print('\n', position, '\n', limitOrder, 'long limit irder filled')
                 position.Update()
                 position.takeProfit()
                 limitOrder.findncancel()
@@ -176,14 +193,18 @@ class Dispatcher:
                 limitOrder.open(position.qty / position.price, limitPrice)
                 limitOrder.Update()
                 print('\n', position, '\n', limitOrder)
+            if limitOrder.status == 'Filled' and step == 7:
+                print('\n', position, '\n', limitOrder)
+                position.takeProfit80()
+                print('Step 8')
+                step += 1
+                print('\n', position, '\n', limitOrder)
+                continue
             await asyncio.sleep(1)
 
     async def shortLoop(self):
         while True:
-            # try:
-            #     await self.shortAlgo()
-            # except BaseException:
-            #     continue
+            # await self.shortAlgo()
             print('Short Algo started')
             try:
                 await self.shortAlgo()
@@ -193,10 +214,7 @@ class Dispatcher:
 
     async def longLoop(self):
         # while True:
-        #     try:
-        #         await self.longAlgo()
-        #     except BaseException:
-        #         continue
+        #     await self.longAlgo()
         while True:
             print('Long Algo started')
             try:
