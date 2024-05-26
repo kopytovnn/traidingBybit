@@ -27,7 +27,8 @@ def COIN(coin):
         callback_data=f"bybit_change_{coin}")
 
 
-def COIN_BINGX(coin):
+def CHANGE_END_DATE(id1):
     return types.InlineKeyboardButton(
-        text=coin,
-        callback_data=f"bingx_change_{coin}")
+        text='Смена даты',
+        callback_data=f"changeenddate_{id1}"
+    )

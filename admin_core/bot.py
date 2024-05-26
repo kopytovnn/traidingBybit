@@ -15,7 +15,7 @@ from aiogram.types import Message
 import multiprocessing as mp
 
 
-from app.handlers import add_new_user
+from app.handlers import add_new_user, all_users
 
 
 async def main():
@@ -29,6 +29,8 @@ async def main():
 
     dp.include_router(common.router)
     dp.include_router(add_new_user.router)
+    dp.include_router(all_users.router)
+
     # dp.include_router(bingx_handler.router)
     await dp.start_polling(bot)
 
