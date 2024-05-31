@@ -1,9 +1,14 @@
 def useroutput(record):
     return f'''
-Id: {record.id}
+№: {record.id}\t{record.name}'''
 
-Имя: {record.name}
+def userbigouput(record):
+    return f'''
+Параметры пользователя {record.name}#{record.id}
+Актуальный баланс: NOT AVALIABLE RIGHT NOW
 
-ByBit Api key: {record.bybitapi}
+Торговый депозит {record.symbol}USDT: {record.deposit} USDT
 
-ByBit Secret key: {record.bybitsecret}'''
+Api ключи: NOT AVALIABLE RIGHT NOW
+
+Мониторинг: NOT AVALIABLE RIGHT NOW'''

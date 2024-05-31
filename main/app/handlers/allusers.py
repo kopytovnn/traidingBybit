@@ -33,6 +33,7 @@ class ByBitStart(StatesGroup):
     symbol = State()
     deposit = State()
     stop = State()
+    gofromadding = State()
 
 
 @router.message(Command("all_users"))
@@ -40,17 +41,30 @@ class ByBitStart(StatesGroup):
 async def allusers(callback: types.CallbackQuery, state: FSMContext):
     with Session(engine) as session:
         all_users = session.query(user.User).all()
+        textanswer = ""
         for u in all_users:
-            builder = InlineKeyboardBuilder()
-            builder.add(buttons.STARTBYBIT(u.id))
-            # builder.add(buttons.STARTBYBIT1)
-            builder.add(buttons.STOPBYBIT(u.id))
+            textanswer += msgs.useroutput(u) + '\n'
 
-            await callback.message.answer(
-                text=msgs.useroutput(u),
-                reply_markup=builder.as_markup()
-            )
+        await callback.message.answer(
+            text=msgs.useroutput(u),
+        )
+        await callback.message.answer(
+            text="Введите порядковый номер пользователя"
+        )
     await state.set_state(ByBitStart.uid.state)
+
+@router.message(ByBitStart.uid)
+async def bybitdeposiot(message: types.Message, state: FSMContext):
+    await state.update_data(uid=int(message.text.lower()))
+    user_data = await state.get_data()
+    with Session(engine) as session:
+        u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
+        await message.answer(text=msgs.userbigouput(u))
+
+
+@router.callback_query(F.data.startswith("bybit_start_"))
+async def allusers(callback: types.CallbackQuery, state: FSMContext):
+    await state.update_data(uid=callback.data.split('_')[2])
 
 
 @router.callback_query(F.data.startswith("bybit_stop_"))
@@ -85,7 +99,11 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
     await state.update_data(deposit=message.text.lower())
 
     user_data = await state.get_data()
-    uid, symbol, deposit = user_data.values()
+
+    # uid, symbol, deposit = user_data.values()
+    uid = user_data["uid"]
+    symbol = user_data["symbol"]
+    deposit = user_data["deposit"]
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == int(uid)).all()[0]
         apikey, secretkey = u.bybitapi, u.bybitsecret
@@ -101,6 +119,7 @@ def register_handlers_bybit_start(dp: Dispatcher):
     dp.register_message_handler(allusers, commands="/all_users", state="*")
     # dp.register_message_handler(bybitstart, state=ByBitStart.uid)
     # dp.register_message_handler(aaa, sta)
+    dp.register_message_handler(allusers_alt, State=ByBitStart.gofromadding)
     dp.register_message_handler(bybitsymbol, state=ByBitStart.symbol)
     dp.register_message_handler(bybitdeposiot, state=ByBitStart.deposit)
     # dp.register_message_handler(bybit_symbol_chosen, state=BybitAuthData.waiting_for_symbol)
