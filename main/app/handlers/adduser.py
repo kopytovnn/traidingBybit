@@ -99,6 +99,8 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
                         symbol=user_data["symbol"],
                         deposit=float(user_data["deposit"]))
             session.add_all([nu,])
+            all_users = session.query(user.User).all()
+            await state.update_data(uid=all_users[-1].id)
         else:
             u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
             if "bybitapi" in user_data:
@@ -112,6 +114,7 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
         session.commit()
     
         await message.answer("Данные успешно внесены")
+        await message.answer("Подождите...")
 
         from app.handlers.allusers import bybitdeposiotclone
         await bybitdeposiotclone(message, state)

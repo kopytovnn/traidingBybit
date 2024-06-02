@@ -31,6 +31,11 @@ CHANGE_DEPOSIT = types.InlineKeyboardButton(
     callback_data="change_deposit"
 )
 
+STATISTIS = types.InlineKeyboardButton(
+    text="Выгрузка статистики",
+    callback_data="get_stat"
+)
+
 def TRAIDING_PAIRS(uid):
     return types.InlineKeyboardButton(
         text="Торговые пары",

@@ -294,6 +294,22 @@ class Client:
                   'coin': 'USDT'}
         resp = self._get('/v5/account/wallet-balance', params=params)
         return resp
+    
+
+    def close_pos(self, symbol):
+        params = {"category": "linear",
+                  "symbol": symbol}
+        
+        resp = self._postOrder('/v5/order/cancel-all', params=params)
+        return resp
+    
+    def get_closed_PnL(self, symbol):
+        params = {
+            "category": "linear",
+            "symbol": symbol
+        }
+        resp = self._get("/v5/position/closed-pnl", params=params)
+        return resp
 
 # apikey = config.API_KEY
 # secretkey = config.SECRET_KEY

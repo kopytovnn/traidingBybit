@@ -47,7 +47,16 @@ class SmallBybit():
         if response:
             self.coinControl[symbol].orders = len(response) - self.coinControl[symbol].tps
 
+    def endnclose(self, symbol):
+        response = self.cl.close_pos(symbol)
+        print(response)
+        response = self.cl.cancel_all_limit_orders(symbol, 'Buy')
+        print(response)
+        response = self.cl.cancel_all_limit_orders(symbol, 'Sell')
+        print(response)
+
     def update(self):
+        return 0
         try:
             self.get_balance()
             self.apiStatus = True
@@ -68,6 +77,15 @@ class SmallBybit():
             if "Позиций: 0" not in str(self.coinControl[i]):
                 answer += str(self.coinControl[i]) + '\n'
         return answer
+    
 
+    def statistics(self, symbol):
+        response = self.cl.get_closed_PnL(symbol)
+
+        import pandas as pd
+        pd.DataFrame(response['result']['list']).to_csv('out.csv', index=False)
+
+
+        print(response)
 
     

@@ -19,6 +19,9 @@ from msgs import msgs
 from app.keyboards import buttons
 from fix.Bybit import Dispatcher, TradeInfo
 
+from multiprocessing import Process
+
+
 
 engine = create_engine("sqlite:///Data.db", echo=True)
 
@@ -35,6 +38,9 @@ class ByBitStart(StatesGroup):
     deposit = State()
     stop = State()
     gofromadding = State()
+    beforedate = State()
+    afterdate = State()
+    statistics = State()
 
 
 @router.message(Command("all_users"))
@@ -43,11 +49,12 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
     with Session(engine) as session:
         all_users = session.query(user.User).all()
         textanswer = ""
+        print(all_users)
         for u in all_users:
             textanswer += msgs.useroutput(u) + '\n'
 
         await callback.message.answer(
-            text=msgs.useroutput(u),
+            text=textanswer,
         )
         await callback.message.answer(
             text="Введите порядковый номер пользователя"
@@ -66,12 +73,15 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
 
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
+        builder.add(buttons.STATISTIS)
         await message.answer(text=msgs.userbigouput(u, ti),
                              reply_markup=builder.as_markup())
+        
         
 async def bybitdeposiotclone(message: types.Message, state: FSMContext):
     # await state.update_data(uid=int(uid))
     user_data = await state.get_data()
+    print(user_data)
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
         ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
@@ -80,6 +90,21 @@ async def bybitdeposiotclone(message: types.Message, state: FSMContext):
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
         await message.answer(text=msgs.userbigouput(u, ti),
+                             reply_markup=builder.as_markup())
+        
+
+async def bybitdeposiotcloneCB(callback: types.CallbackQuery, state: FSMContext):
+    # await state.update_data(uid=int(uid))
+    user_data = await state.get_data()
+    print(user_data)
+    with Session(engine) as session:
+        u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
+        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
+        ti.update()
+
+        builder = InlineKeyboardBuilder()
+        builder.add(buttons.TRAIDING_PAIRS(u.id))
+        await callback.message.answer(text=msgs.userbigouput(u, ti),
                              reply_markup=builder.as_markup())
 
 
@@ -101,13 +126,70 @@ async def traidingpairs2(callback: types.CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("bybit_start_"))
 async def allusers(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(uid=callback.data.split('_')[2])
+    with Session(engine) as session:
+        u = session.query(user.User).filter(user.User.id == int(callback.data.split('_')[2])).all()[0]
+        user_data = await state.get_data()
 
+        from fix.Bybit.main import start
+
+        p = Process(target=start, args=(str(u.bybitapi), str(u.bybitsecret), user_data["symbol"] + 'USDT', float(u.deposit)))
+        p.daemon = True
+        # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
+        p.start()
+        tasks[u.id] = p
+
+        from app.handlers.allusers import bybitdeposiotclone
+        await bybitdeposiotcloneCB(callback, state)
+
+    
 
 @router.callback_query(F.data.startswith("bybit_stop_"))
 async def stopany(callback: types.CallbackQuery, state: FSMContext):
-    uid=callback.data.split('_')[2]
+    uid=int(callback.data.split('_')[2])
     tasks[uid].terminate()
     await callback.message.answer("ByBit останвлен")
+
+
+@router.callback_query(F.data.startswith("bybit_stopclose_"))
+async def stopclose(callback: types.CallbackQuery, state: FSMContext):
+    uid=int(callback.data.split('_')[2])
+    tasks[uid].terminate()
+    with Session(engine) as session:
+        u = session.query(user.User).filter(user.User.id == uid).all()[0]
+        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
+        ti.endnclose(u.symbol + 'USDT')
+    await callback.message.answer("ByBit останвлен. Позиции закрыты")
+
+
+@router.callback_query(F.data == "get_stat")
+async def aaa(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.answer(
+        text="Введите дату ОТ"
+    )
+    await state.set_state(ByBitStart.beforedate)
+
+
+@router.message(ByBitStart.beforedate)
+async def namechoosen(message: types.Message, state: FSMContext):
+    await state.update_data(beforedate1=message.text)
+
+    await state.set_state(ByBitStart.afterdate.state)
+    await message.answer("Введите дату ДО")
+
+@router.message(ByBitStart.afterdate)
+async def namechoosen(message: types.Message, state: FSMContext):
+    await state.update_data(aterdate1=message.text)
+    user_data = await state.get_data()
+    uid = int(user_data['uid'])
+    with Session(engine) as session:
+        u = session.query(user.User).filter(user.User.id == uid).all()[0]
+        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
+        ti.statistics(u.symbol + 'USDT')
+        from aiogram.types import FSInputFile
+
+        doc = FSInputFile(path='C:/Users/Коля/PycharmProjects/tradeBot/out.csv', filename='out.csv')
+        await message.answer_document(document=doc)
+        print(user_data)
 
 
 @router.callback_query(F.data.startswith("bybit_start_"))
