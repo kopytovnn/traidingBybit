@@ -47,6 +47,12 @@ async def namechoosen(message: types.Message, state: FSMContext):
     await state.set_state(AddNewUser.bybitapi.state)
     await message.answer("Введите API key пользователя от ByBit")
 
+async def namechosenclone(name, callback: types.CallbackQuery, state: FSMContext):
+    await state.update_data(name=name)
+
+    await state.set_state(AddNewUser.bybitapi.state)
+    await callback.message.answer("Введите API key пользователя от ByBit")
+
 
 @router.message(AddNewUser.bybitapi)
 async def bybitapichoosen(message: types.Message, state: FSMContext):
@@ -74,8 +80,44 @@ async def bybitsymbol(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(AddNewUser.deposit.state)
     await callback.message.answer("Введите желаемый депозит в usdt")
 
+async def bybitsymbolclone(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(AddNewUser.deposit.state)
+    await callback.message.answer("Введите желаемый депозит в usdt")
+
 @router.message(AddNewUser.deposit)
 async def bybitdeposiot(message: types.Message, state: FSMContext):
+    await state.update_data(deposit=message.text.lower())
+
+    user_data = await state.get_data()
+    print(user_data)
+
+    with Session(engine) as session:
+        if 'uid' not in user_data:
+            nu = user.User(name=user_data["name"],
+                        bybitapi=user_data["bybitapi"],
+                        bybitsecret=user_data["bybitsecret"],
+                        symbol=user_data["symbol"],
+                        deposit=float(user_data["deposit"]))
+            session.add_all([nu,])
+        else:
+            u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
+            if "bybitapi" in user_data:
+                u.bybitapi = user_data["bybitapi"]
+                u.bybitsecret = user_data["bybitsecret"]
+            if "symbol" in user_data:
+                u.symbol = user_data["symbol"]
+            if "deposit" in user_data:
+                u.deposit = float(user_data["deposit"]) 
+
+        session.commit()
+    
+        await message.answer("Данные успешно внесены")
+
+        from app.handlers.allusers import bybitdeposiotclone
+        await bybitdeposiotclone(message, state)
+
+
+async def bybitdeposiotclone(message: types.Message, state: FSMContext):
     await state.update_data(deposit=message.text.lower())
 
     user_data = await state.get_data()
@@ -91,9 +133,6 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
         session.commit()
     
         await message.answer("Данные успешно вынесены")
-
-
-
 
 
 def register_handlers_bybit_auth(dp: Dispatcher):

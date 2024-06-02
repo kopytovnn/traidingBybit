@@ -21,16 +21,39 @@ STARTBYBIT1 = types.InlineKeyboardButton(
     callback_data="bybit_start_"
 )
 
+CHANGE_API = types.InlineKeyboardButton(
+    text="API ключи",
+    callback_data="change_api"
+)
+
+CHANGE_DEPOSIT = types.InlineKeyboardButton(
+    text="Торговый депозит",
+    callback_data="change_deposit"
+)
+
+def TRAIDING_PAIRS(uid):
+    return types.InlineKeyboardButton(
+        text="Торговые пары",
+        callback_data=f"traiding_pairs_{uid}"
+    )
+
 def STARTBYBIT(uid):
     return types.InlineKeyboardButton(
-        text="Запустить ByBit",
+        text="Запустить",
         callback_data=f"bybit_start_{uid}"
     )
 
 def STOPBYBIT(uid):
     return types.InlineKeyboardButton(
-        text="Остановить ByBit",
+        text="Остановить",
         callback_data=f"bybit_stop_{uid}"
+    )
+
+
+def STOPCLOSEBYBIT(uid):
+    return types.InlineKeyboardButton(
+        text="Остановить c закрытием позиций",
+        callback_data=f"bybit_stopclose_{uid}"
     )
 
 
@@ -38,3 +61,10 @@ def COIN(coin):
     return types.InlineKeyboardButton(
         text=coin,
         callback_data=f"bybit_change_{coin}")
+
+def COIN1(coin):
+    return types.InlineKeyboardButton(
+        text=coin,
+        callback_data=f"bybit_change1_{coin}")
+
+

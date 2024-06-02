@@ -249,16 +249,6 @@ class Client:
         resp = self._get('/v5/position/list', params)
         return resp['result']['list']
 
-        if resp['retMsg'] != 'OK':
-            print(f'WARNING!!! position_price(self, {symbol}, {positionIdx})', resp)
-        
-        try:
-            for i in resp['result']['list']:
-                if i['positionIdx'] == positionIdx:
-                    return float(i['avgPrice'])
-        except BaseException as ex:
-            print(f'WARNING!!! position_price(self, {symbol}, {positionIdx})', resp)
-            print(f'resp["result"] = {resp["result"]}')
 
     def cancel_order(self, symbol, orderId):
         params = {
@@ -275,11 +265,11 @@ class Client:
                   "symbol": symbol,
                   }
         resp = self._get('/v5/order/realtime', params)
-        # print(resp)
         retMsg = resp['retMsg']
         if retMsg == 'OK':
             order_list = resp['result']['list']
             return order_list
+        return resp
 
     def cancel_all_limit_orders(self, symbol, side):
         positionidx = {'Sell': 2, 'Buy': 1}[side]
@@ -298,6 +288,12 @@ class Client:
             if order['orderStatus'] == 'PartiallyFilled' and order['side'] == side and order['positionIdx'] == positionidx and order['orderType'] == 'Limit':
                 orders.append(order)
         return orders
+    
+    def get_balance(self):
+        params = {'accountType': 'UNIFIED',
+                  'coin': 'USDT'}
+        resp = self._get('/v5/account/wallet-balance', params=params)
+        return resp
 
 # apikey = config.API_KEY
 # secretkey = config.SECRET_KEY

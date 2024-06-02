@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from database.models import user
 from msgs import msgs
 from app.keyboards import buttons
+from fix.Bybit import Dispatcher, TradeInfo
 
 
 engine = create_engine("sqlite:///Data.db", echo=True)
@@ -53,13 +54,48 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
         )
     await state.set_state(ByBitStart.uid.state)
 
+
 @router.message(ByBitStart.uid)
 async def bybitdeposiot(message: types.Message, state: FSMContext):
     await state.update_data(uid=int(message.text.lower()))
     user_data = await state.get_data()
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
-        await message.answer(text=msgs.userbigouput(u))
+        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
+        ti.update()
+
+        builder = InlineKeyboardBuilder()
+        builder.add(buttons.TRAIDING_PAIRS(u.id))
+        await message.answer(text=msgs.userbigouput(u, ti),
+                             reply_markup=builder.as_markup())
+        
+async def bybitdeposiotclone(message: types.Message, state: FSMContext):
+    # await state.update_data(uid=int(uid))
+    user_data = await state.get_data()
+    with Session(engine) as session:
+        u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
+        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
+        ti.update()
+
+        builder = InlineKeyboardBuilder()
+        builder.add(buttons.TRAIDING_PAIRS(u.id))
+        await message.answer(text=msgs.userbigouput(u, ti),
+                             reply_markup=builder.as_markup())
+
+
+@router.callback_query(F.data.startswith("traiding_pairs_"))
+async def traidingpairs2(callback: types.CallbackQuery, state: FSMContext):
+    print(state.get_data, callback.data.split('_')[2])
+    user_data = await state.get_data()
+    print(user_data)
+    with Session(engine) as session:
+        u = session.query(user.User).filter(user.User.id == int(callback.data.split('_')[2])).all()[0]
+        builder = InlineKeyboardBuilder()
+        builder.add(buttons.COIN1(u.symbol))
+        await state.set_state(ByBitStart.symbol)
+        await callback.message.answer(text="Выберите активную пару",
+                                      reply_markup=builder.as_markup())
+        
 
 
 @router.callback_query(F.data.startswith("bybit_start_"))
@@ -83,12 +119,45 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
 
 
 @router.message(ByBitStart.symbol)
-@router.callback_query(F.data.startswith("bybit_change_"))
+@router.callback_query(F.data.startswith("bybit_change1_"))
 async def bybitsymbol(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(symbol=callback.data.split('_')[2])
 
-    await state.set_state(ByBitStart.deposit.state)
-    await callback.message.answer("Введите желаемый депозит в usdt")
+    user_data = await state.get_data()
+    print(user_data)
+    builder = InlineKeyboardBuilder()
+    builder.add(buttons.STARTBYBIT(user_data["uid"]))
+    builder.add(buttons.STOPBYBIT(user_data["uid"]))
+    builder.add(buttons.STOPCLOSEBYBIT(user_data["uid"]))
+    builder.add(buttons.CHANGE_API)
+    builder.add(buttons.CHANGE_DEPOSIT)
+
+    # await state.set_state(ByBitStart.deposit.state)
+    await callback.message.answer(
+        text=f"""
+Торговые пары
+Выбрана торговая пара: {user_data["symbol"]}
+""",
+    reply_markup=builder.as_markup()
+    )
+
+@router.message(Command("change_api"))
+@router.callback_query(F.data == "change_api")
+async def change_api(callback: types.CallbackQuery, state: FSMContext):
+    from app.handlers.adduser import namechosenclone
+    with Session(engine) as session:
+        user_data = await state.get_data()
+        u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
+        await namechosenclone(u.name, callback, state)
+
+@router.message(Command("change_deposit"))
+@router.callback_query(F.data == "change_deposit")
+async def change_api(callback: types.CallbackQuery, state: FSMContext):
+    from app.handlers.adduser import bybitsymbolclone
+    with Session(engine) as session:
+        user_data = await state.get_data()
+        # u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
+        await bybitsymbolclone(callback, state)
 
 
 @router.message(ByBitStart.deposit)

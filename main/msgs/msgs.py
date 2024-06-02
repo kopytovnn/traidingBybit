@@ -2,13 +2,14 @@ def useroutput(record):
     return f'''
 №: {record.id}\t{record.name}'''
 
-def userbigouput(record):
+def userbigouput(record, ti):
     return f'''
 Параметры пользователя {record.name}#{record.id}
-Актуальный баланс: NOT AVALIABLE RIGHT NOW
+Актуальный баланс: {round(ti.balance, 2)}USDT
 
 Торговый депозит {record.symbol}USDT: {record.deposit} USDT
 
-Api ключи: NOT AVALIABLE RIGHT NOW
+Api ключи: {ti.apiStatus}
 
-Мониторинг: NOT AVALIABLE RIGHT NOW'''
+Мониторинг:
+{ti.monitoring()}'''
