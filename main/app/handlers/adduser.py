@@ -89,27 +89,47 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
     await state.update_data(deposit=message.text.lower())
 
     user_data = await state.get_data()
+    for i in range(100):
+        print(user_data)
     print(user_data)
 
     with Session(engine) as session:
-        if 'uid' not in user_data:
-            nu = user.User(name=user_data["name"],
+        if 'aid' not in user_data and 'uid' not in user_data:
+            print(1)
+            nu = user.User(name=user_data["name"])
+            na = user.API(name=user_data["name"],
                         bybitapi=user_data["bybitapi"],
                         bybitsecret=user_data["bybitsecret"],
                         symbol=user_data["symbol"],
                         deposit=float(user_data["deposit"]))
-            session.add_all([nu,])
+            session.add_all([nu, na])
+            all_apis = session.query(user.API).all()
             all_users = session.query(user.User).all()
-            await state.update_data(uid=all_users[-1].id)
-        else:
+            all_users[-1].apis = [all_apis[-1]]
+            await state.update_data(aid=all_apis[-1].id)
+        elif 'aid' not in user_data:
+            print(2)
+            na = user.API(name=user_data["name"],
+                        bybitapi=user_data["bybitapi"],
+                        bybitsecret=user_data["bybitsecret"],
+                        symbol=user_data["symbol"],
+                        deposit=float(user_data["deposit"]))
+            session.add_all([na])
+            all_apis = session.query(user.API).all()
             u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
+            u.apis.append(all_apis[-1])
+            await state.update_data(aid=all_apis[-1].id)
+        else:
+            print(3)
+            a = session.query(user.API).filter(user.API.id == int(user_data["aid"])).all()[0]
+
             if "bybitapi" in user_data:
-                u.bybitapi = user_data["bybitapi"]
-                u.bybitsecret = user_data["bybitsecret"]
+                a.bybitapi = user_data["bybitapi"]
+                a.bybitsecret = user_data["bybitsecret"]
             if "symbol" in user_data:
-                u.symbol = user_data["symbol"]
+                a.symbol = user_data["symbol"]
             if "deposit" in user_data:
-                u.deposit = float(user_data["deposit"]) 
+                a.deposit = float(user_data["deposit"]) 
 
         session.commit()
     

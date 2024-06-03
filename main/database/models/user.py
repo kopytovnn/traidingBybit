@@ -1,11 +1,11 @@
 from sqlalchemy import MetaData, Table, String, Integer, Column, Text, DateTime, Boolean, ForeignKey, Date, Double
 from sqlalchemy.orm import declarative_base, relationship
 from database.models.base import Base
-# from ...admin_core.app.handlers import add_new_user
+# from models.base import Base
 
 
-class User(Base):
-    __tablename__ = 'User'
+class API(Base):
+    __tablename__ = 'API'
 
     id = Column(Integer, nullable=True, unique=True, primary_key=True, autoincrement=True)
     name = Column(String(), nullable=True)
@@ -15,3 +15,13 @@ class User(Base):
     bingxsecret = Column(String(), nullable=True)
     symbol = Column(String(), nullable=True)
     deposit = Column(Double(), nullable=True)
+    user_id = Column(Integer, ForeignKey("User.id"))
+    user = relationship("User", back_populates="apis")
+
+
+
+class User(Base):
+    __tablename__ = 'User'
+    id = Column(Integer, nullable=True, unique=True, primary_key=True, autoincrement=True)
+    name = Column(String(), nullable=True)
+    apis = relationship("API", back_populates="user")

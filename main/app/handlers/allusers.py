@@ -68,13 +68,15 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
-        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
-        ti.update()
-
+        text = f'Параметры пользователя {u.name}#{u.id}\n'
+        for a in u.apis:
+            ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
+            ti.update()
+            text += msgs.userbigouput(a, ti)
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
         builder.add(buttons.STATISTIS)
-        await message.answer(text=msgs.userbigouput(u, ti),
+        await message.answer(text=text,
                              reply_markup=builder.as_markup())
         
         
@@ -84,12 +86,15 @@ async def bybitdeposiotclone(message: types.Message, state: FSMContext):
     print(user_data)
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
-        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
-        ti.update()
-
+        text = f'Параметры пользователя {u.name}#{u.id}\n'
+        for a in u.apis:
+            ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
+            ti.update()
+            text += msgs.userbigouput(a, ti)
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
-        await message.answer(text=msgs.userbigouput(u, ti),
+        builder.add(buttons.STATISTIS)
+        await message.answer(text=text,
                              reply_markup=builder.as_markup())
         
 
@@ -99,12 +104,15 @@ async def bybitdeposiotcloneCB(callback: types.CallbackQuery, state: FSMContext)
     print(user_data)
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == int(user_data["uid"])).all()[0]
-        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
-        ti.update()
-
+        text = f'Параметры пользователя {u.name}#{u.id}\n'
+        for a in u.apis:
+            ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
+            ti.update()
+            text += msgs.userbigouput(a, ti)
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
-        await callback.message.answer(text=msgs.userbigouput(u, ti),
+        builder.add(buttons.STATISTIS)
+        await callback.message.answer(text=text,
                              reply_markup=builder.as_markup())
 
 
@@ -115,8 +123,36 @@ async def traidingpairs2(callback: types.CallbackQuery, state: FSMContext):
     print(user_data)
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == int(callback.data.split('_')[2])).all()[0]
+        text = 'Торговые пары\n\nАктивные пары: '
+        for a in u.apis:
+            text += str(a.symbol) + 'USDT, '
+        text += '\nВыберите пару для торговли'
         builder = InlineKeyboardBuilder()
-        builder.add(buttons.COIN1(u.symbol))
+        builder.add(buttons.ACTIVE_PAIRS(u.id))
+        builder.add(buttons.ADD_TRAIDINGPAIR(u.id))
+
+        await callback.message.answer(text=text,
+                                      reply_markup=builder.as_markup())
+        
+
+@router.callback_query(F.data.startswith("addtraiding_pairs_"))
+async def addtraidingpairs(callback: types.CallbackQuery, state: FSMContext):
+    uid = int(callback.data.split('_')[2])
+    with Session(engine) as session:
+        u = session.query(user.User).all()[0]
+    from app.handlers.adduser import namechosenclone
+    await namechosenclone(u.name, callback, state)
+
+
+@router.callback_query(F.data.startswith("active_pairs_"))
+async def activepairs(callback: types.CallbackQuery, state: FSMContext):
+    uid = int(callback.data.split('_')[2])
+    with Session(engine) as session:
+        builder = InlineKeyboardBuilder()
+        u = session.query(user.User).filter(user.User.id == uid).all()[0]
+        for a in u.apis:
+            builder.add(buttons.COIN1(a.symbol))
+        #     builder.add(buttons.COIN1(a.symbol))
         await state.set_state(ByBitStart.symbol)
         await callback.message.answer(text="Выберите активную пару",
                                       reply_markup=builder.as_markup())

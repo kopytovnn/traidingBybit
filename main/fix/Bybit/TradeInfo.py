@@ -21,6 +21,7 @@ class SmallBybit():
         self.pairs = {}  # symbol: SmallPosition
         self.cl = Client(apikey, secretkey)
 
+
         self.coinControl = {}
 
         self.balance = 0
@@ -56,7 +57,7 @@ class SmallBybit():
         print(response)
 
     def update(self):
-        return 0
+        # return 0
         try:
             self.get_balance()
             self.apiStatus = True

@@ -36,6 +36,18 @@ STATISTIS = types.InlineKeyboardButton(
     callback_data="get_stat"
 )
 
+def ADD_TRAIDINGPAIR(uid):
+    return types.InlineKeyboardButton(
+        text="Добавить новую пару",
+        callback_data=f"addtraiding_pairs_{uid}"
+    )
+
+def ACTIVE_PAIRS(uid):
+    return types.InlineKeyboardButton(
+        text="Активные пары",
+        callback_data=f"active_pairs_{uid}"
+    )
+
 def TRAIDING_PAIRS(uid):
     return types.InlineKeyboardButton(
         text="Торговые пары",
