@@ -220,13 +220,14 @@ async def namechoosen(message: types.Message, state: FSMContext):
     uid = int(user_data['uid'])
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == uid).all()[0]
-        ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
-        ti.statistics(u.symbol + 'USDT')
-        from aiogram.types import FSInputFile
+        for a in u.apis:
+            ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
+            ti.statistics(a.symbol + 'USDT')
+            from aiogram.types import FSInputFile
 
-        doc = FSInputFile(path='C:/Users/Коля/PycharmProjects/tradeBot/out.csv', filename='out.csv')
-        await message.answer_document(document=doc)
-        print(user_data)
+            doc = FSInputFile(path='C:/Users/Коля/PycharmProjects/tradeBot/out.csv', filename=f'{a.symbol}.csv')
+            await message.answer_document(document=doc)
+            print(user_data)
 
 
 @router.callback_query(F.data.startswith("bybit_start_"))
