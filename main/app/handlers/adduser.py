@@ -107,6 +107,7 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
             all_users = session.query(user.User).all()
             all_users[-1].apis = [all_apis[-1]]
             await state.update_data(aid=all_apis[-1].id)
+            await state.update_data(uid=all_users[-1].id)
         elif 'aid' not in user_data:
             print(2)
             na = user.API(name=user_data["name"],

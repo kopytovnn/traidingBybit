@@ -56,17 +56,15 @@ class SmallBybit():
         response = self.cl.cancel_all_limit_orders(symbol, 'Sell')
         print(response)
 
-    def update(self):
+    def update(self, a):
         # return 0
         try:
             self.get_balance()
             self.apiStatus = True
             
-            for i in coins:
-                self.get_positions(i + 'USDT')
+            self.get_positions(a.symbol + 'USDT')
             
-            for i in coins:
-                self.get_limits(i + 'USDT')
+            self.get_limits(a.symbol + 'USDT')
             print(self.coinControl)
         except BaseException:
             self.apiStatus = False

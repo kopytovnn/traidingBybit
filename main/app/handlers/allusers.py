@@ -71,7 +71,7 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
         text = f'Параметры пользователя {u.name}#{u.id}\n'
         for a in u.apis:
             ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
-            ti.update()
+            ti.update(a)
             text += msgs.userbigouput(a, ti)
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
@@ -89,7 +89,7 @@ async def bybitdeposiotclone(message: types.Message, state: FSMContext):
         text = f'Параметры пользователя {u.name}#{u.id}\n'
         for a in u.apis:
             ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
-            ti.update()
+            ti.update(a)
             text += msgs.userbigouput(a, ti)
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
@@ -107,7 +107,7 @@ async def bybitdeposiotcloneCB(callback: types.CallbackQuery, state: FSMContext)
         text = f'Параметры пользователя {u.name}#{u.id}\n'
         for a in u.apis:
             ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
-            ti.update()
+            ti.update(a)
             text += msgs.userbigouput(a, ti)
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
@@ -151,7 +151,8 @@ async def activepairs(callback: types.CallbackQuery, state: FSMContext):
         builder = InlineKeyboardBuilder()
         u = session.query(user.User).filter(user.User.id == uid).all()[0]
         for a in u.apis:
-            builder.add(buttons.COIN1(a.symbol))
+            print(a.symbol, a.id)
+            builder.add(buttons.COINAPI(a.id, a.symbol))
         #     builder.add(buttons.COIN1(a.symbol))
         await state.set_state(ByBitStart.symbol)
         await callback.message.answer(text="Выберите активную пару",
@@ -162,9 +163,9 @@ async def activepairs(callback: types.CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("bybit_start_"))
 async def allusers(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(uid=callback.data.split('_')[2])
+    user_data = await state.get_data()
     with Session(engine) as session:
-        u = session.query(user.User).filter(user.User.id == int(callback.data.split('_')[2])).all()[0]
-        user_data = await state.get_data()
+        u = session.query(user.API).filter(user.API.id == int(user_data["aid"])).all()[0]
 
         from fix.Bybit.main import start
 
@@ -237,18 +238,21 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
 
 
 @router.message(ByBitStart.symbol)
-@router.callback_query(F.data.startswith("bybit_change1_"))
+@router.callback_query(F.data.startswith("bybit_change2_"))
 async def bybitsymbol(callback: types.CallbackQuery, state: FSMContext):
-    await state.update_data(symbol=callback.data.split('_')[2])
+    for i in range(10):
+        print(callback.data.split('_'))
+    await state.update_data(symbol=callback.data.split('_')[2].split('R')[0])
+    await state.update_data(aid=callback.data.split('_')[2].split('R')[1])
 
     user_data = await state.get_data()
     print(user_data)
     builder = InlineKeyboardBuilder()
-    builder.add(buttons.STARTBYBIT(user_data["uid"]))
-    builder.add(buttons.STOPBYBIT(user_data["uid"]))
-    builder.add(buttons.STOPCLOSEBYBIT(user_data["uid"]))
-    builder.add(buttons.CHANGE_API)
-    builder.add(buttons.CHANGE_DEPOSIT)
+    row = [[buttons.STARTBYBIT(user_data["uid"])],
+           [buttons.STOPBYBIT(user_data["uid"]), buttons.STOPCLOSEBYBIT(user_data["uid"])],
+           [buttons.CHANGE_API, buttons.CHANGE_DEPOSIT], ]
+    kb = InlineKeyboardMarkup(inline_keyboard=row, resize_keyboard=True)
+
 
     # await state.set_state(ByBitStart.deposit.state)
     await callback.message.answer(
@@ -256,7 +260,7 @@ async def bybitsymbol(callback: types.CallbackQuery, state: FSMContext):
 Торговые пары
 Выбрана торговая пара: {user_data["symbol"]}
 """,
-    reply_markup=builder.as_markup()
+    reply_markup=kb
     )
 
 @router.message(Command("change_api"))

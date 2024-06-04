@@ -69,7 +69,7 @@ def STOPBYBIT(uid):
 
 def STOPCLOSEBYBIT(uid):
     return types.InlineKeyboardButton(
-        text="Остановить c закрытием позиций",
+        text="Остановить c закрытием",
         callback_data=f"bybit_stopclose_{uid}"
     )
 
@@ -85,3 +85,8 @@ def COIN1(coin):
         callback_data=f"bybit_change1_{coin}")
 
 
+def COINAPI(api, coin):
+    print(f"bybit_change2_{coin}_{api}")
+    return types.InlineKeyboardButton(
+        text=coin,
+        callback_data=f"bybit_change2_{coin}R{api}")
