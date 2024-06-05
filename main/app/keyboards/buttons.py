@@ -89,4 +89,10 @@ def COINAPI(api, coin):
     print(f"bybit_change2_{coin}_{api}")
     return types.InlineKeyboardButton(
         text=coin,
-        callback_data=f"bybit_change2_{coin}R{api}")
+        callback_data=f"bybit_change2_{coin}${api}")
+
+def DELETEUSER(uid):
+    return types.InlineKeyboardButton(
+        text="Удалить",
+        callback_data=f"delete_user_{uid}"
+    )

@@ -62,6 +62,15 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(ByBitStart.uid.state)
 
 
+@router.callback_query(F.data.startswith("delete_user_"))
+async def delete_user(callback: types.CallbackQuery, state: FSMContext):
+    uid = int(callback.data.split('_')[2])
+    with Session(engine) as session:
+        session.query(user.User).filter(user.User.id == uid).delete()
+        session.commit()
+    await callback.message.answer("Пользователь удален")
+
+
 @router.message(ByBitStart.uid)
 async def bybitdeposiot(message: types.Message, state: FSMContext):
     await state.update_data(uid=int(message.text.lower()))
@@ -75,6 +84,7 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
             text += msgs.userbigouput(a, ti)
         builder = InlineKeyboardBuilder()
         builder.add(buttons.TRAIDING_PAIRS(u.id))
+        builder.add(buttons.DELETEUSER(u.id))
         builder.add(buttons.STATISTIS)
         await message.answer(text=text,
                              reply_markup=builder.as_markup())
@@ -243,8 +253,8 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
 async def bybitsymbol(callback: types.CallbackQuery, state: FSMContext):
     for i in range(10):
         print(callback.data.split('_'))
-    await state.update_data(symbol=callback.data.split('_')[2].split('R')[0])
-    await state.update_data(aid=callback.data.split('_')[2].split('R')[1])
+    await state.update_data(symbol=callback.data.split('_')[2].split('$')[0])
+    await state.update_data(aid=callback.data.split('_')[2].split('$')[1])
 
     user_data = await state.get_data()
     print(user_data)
