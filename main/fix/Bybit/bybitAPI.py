@@ -52,6 +52,7 @@ class Client:
             signature = hmac.new(self.secretkey.encode('utf8'), paramsForHash.encode('utf8'), hashlib.sha256).hexdigest()
             sortParamsToSend['sign'] = signature
             response = get(url, params=sortParamsToSend, headers={}, timeout=5).json()
+            # print(response)
             return response
         # response = aye(url, params)
         response = None
@@ -303,11 +304,21 @@ class Client:
         resp = self._postOrder('/v5/order/cancel-all', params=params)
         return resp
     
-    def get_closed_PnL(self, symbol):
+    def get_closed_PnL(self, symbol, startTime=None, stopTime=None):
         params = {
             "category": "linear",
             "symbol": symbol
         }
+        if startTime and stopTime:
+            params = {
+                "category": "linear",
+                "symbol": symbol,
+                "startTime": startTime,
+                "endTime": stopTime
+            }
+        # params = {
+        #     "category": "linear",
+        #     "symbol": symbol,}
         resp = self._get("/v5/position/closed-pnl", params=params)
         return resp
 

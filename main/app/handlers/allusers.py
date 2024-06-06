@@ -218,21 +218,23 @@ async def aaa(callback: types.CallbackQuery, state: FSMContext):
 
 @router.message(ByBitStart.beforedate)
 async def namechoosen(message: types.Message, state: FSMContext):
-    await state.update_data(beforedate1=message.text)
+    await state.update_data(startTime=message.text)
 
     await state.set_state(ByBitStart.afterdate.state)
     await message.answer("Введите дату ДО")
 
 @router.message(ByBitStart.afterdate)
 async def namechoosen(message: types.Message, state: FSMContext):
-    await state.update_data(aterdate1=message.text)
+    await state.update_data(stopTime=message.text)
     user_data = await state.get_data()
+    print(user_data)
     uid = int(user_data['uid'])
     with Session(engine) as session:
         u = session.query(user.User).filter(user.User.id == uid).all()[0]
         for a in u.apis:
+            print(user_data)
             ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
-            ti.statistics(a.symbol + 'USDT')
+            ti.statistics(a.symbol + 'USDT', startTime=user_data["startTime"], stopTime=user_data["stopTime"])
             from aiogram.types import FSInputFile
 
             doc = FSInputFile(path='C:/Users/Коля/PycharmProjects/tradeBot/out.csv', filename=f'{a.symbol}.csv')

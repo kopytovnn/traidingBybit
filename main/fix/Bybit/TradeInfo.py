@@ -78,8 +78,14 @@ class SmallBybit():
         return answer
     
 
-    def statistics(self, symbol):
-        response = self.cl.get_closed_PnL(symbol)
+    def statistics(self, symbol, startTime=None, stopTime=None):
+        import time
+        import datetime
+        startms = int(time.mktime(datetime.datetime.strptime(startTime, "%d.%m.%Y").timetuple())) * 1000
+        stopms = int(time.mktime(datetime.datetime.strptime(stopTime, "%d.%m.%Y").timetuple())) * 1000
+        print(startms, stopms)
+        response = self.cl.get_closed_PnL(symbol, startms, stopms)
+        print(response)
 
         import pandas as pd
         pd.DataFrame(response['result']['list']).to_csv('out.csv', index=False)
