@@ -200,9 +200,15 @@ async def stopany(callback: types.CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("bybit_stopclose_"))
 async def stopclose(callback: types.CallbackQuery, state: FSMContext):
     uid=int(callback.data.split('_')[2])
-    tasks[uid].terminate()
+    user_data = await state.get_data()
+    aid = user_data['aid']
+    try:
+        tasks[uid].terminate()
+    except BaseException:
+        print("Cannot terminate process")
     with Session(engine) as session:
-        u = session.query(user.User).filter(user.User.id == uid).all()[0]
+        u = session.query(user.API).filter(user.API.id == aid).all()[0]
+        print(u)
         ti = TradeInfo.SmallBybit(u.bybitapi, u.bybitsecret)
         ti.endnclose(u.symbol + 'USDT')
     await callback.message.answer("ByBit останвлен. Позиции закрыты")

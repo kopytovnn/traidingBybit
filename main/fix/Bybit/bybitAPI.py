@@ -89,6 +89,7 @@ class Client:
                 'Content-Type': 'application/json',
             }
             response = requests.Session().request('POST', url, headers=headers, data=payload, timeout=5).json()
+            print(response)
             return response
         response = None
         while True:
@@ -321,8 +322,50 @@ class Client:
         #     "symbol": symbol,}
         resp = self._get("/v5/position/closed-pnl", params=params)
         return resp
+    
 
-# apikey = config.API_KEY
-# secretkey = config.SECRET_KEY
-# cl = Client(apikey, secretkey)
-# print(cl.kline_price('BTCUSDT'))
+    def market_close_order(self, symbol, side, qty=10):
+        resp = self.position_price(symbol=symbol,
+                    positionIdx={'Sell': 2, 'Buy': 1}[side])
+        for position in resp:
+            if position['side'] != side:
+                continue
+            print(position)
+            params = {"symbol": symbol,
+                  "side": side,
+                  "orderType": 'Market',
+                  "qty": position["size"],
+                  "category": 'linear',
+                  "positionIdx": {2: 1, 1: 2}[position["positionIdx"]]
+                }
+            print(params)
+            
+            resp = self._postOrder('/v5/order/create', params)
+            print()
+            print()
+            
+        return
+    
+    def market_close_short(self, symbol):
+        params = {"symbol": symbol,
+                  "side": "Buy",
+                  "orderType": 'Market',
+                  "qty": "1000000",
+                  "category": 'linear',
+                  "positionIdx": 2
+            }
+
+        resp = self._postOrder('/v5/order/create', params)
+
+
+    def market_close_long(self, symbol):
+        params = {"symbol": symbol,
+                  "side": "Sell",
+                  "orderType": 'Market',
+                  "qty": "1000000",
+                  "category": 'linear',
+                  "positionIdx": 1
+            }
+
+        resp = self._postOrder('/v5/order/create', params)
+    

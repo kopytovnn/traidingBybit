@@ -49,12 +49,8 @@ class SmallBybit():
             self.coinControl[symbol].orders = len(response) - self.coinControl[symbol].tps
 
     def endnclose(self, symbol):
-        response = self.cl.close_pos(symbol)
-        print(response)
-        response = self.cl.cancel_all_limit_orders(symbol, 'Buy')
-        print(response)
-        response = self.cl.cancel_all_limit_orders(symbol, 'Sell')
-        print(response)
+        resp = self.cl.market_close_short(symbol)
+        self.cl.market_close_long(symbol)
 
     def update(self, a):
         # return 0
@@ -81,14 +77,19 @@ class SmallBybit():
     def statistics(self, symbol, startTime=None, stopTime=None):
         import time
         import datetime
+
+        delta = 1070744400000 - 1070226000000
         startms = int(time.mktime(datetime.datetime.strptime(startTime, "%d.%m.%Y").timetuple())) * 1000
         stopms = int(time.mktime(datetime.datetime.strptime(stopTime, "%d.%m.%Y").timetuple())) * 1000
-        print(startms, stopms)
-        response = self.cl.get_closed_PnL(symbol, startms, stopms)
-        print(response)
+        tr = []
+        for i in range(startms, stopms, delta):
+            # print(i, min(i + delta, stopms))
+            response = self.cl.get_closed_PnL(symbol, i, min(i + delta, stopms))['result']['list']
+            tr += response
+            # print(response)
 
         import pandas as pd
-        pd.DataFrame(response['result']['list']).to_csv('out.csv', index=False)
+        pd.DataFrame(tr).to_csv('out.csv', index=False)
 
 
         print(response)
