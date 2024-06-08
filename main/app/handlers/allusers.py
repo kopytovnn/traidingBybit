@@ -194,7 +194,7 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
 async def stopany(callback: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     aid = int(user_data['aid'])
-    tasks[aid].terminate()
+    tasks[aid].kill()  
     await callback.message.answer("ByBit останвлен")
 
 
@@ -206,7 +206,7 @@ async def stopclose(callback: types.CallbackQuery, state: FSMContext):
     print(tasks, uid, aid)
     # tasks[aid].terminate()
     try:
-        tasks[aid].terminate()
+        tasks[aid].kill()
     except BaseException as e:
         print("Cannot terminate process\n\n", e)
     with Session(engine) as session:

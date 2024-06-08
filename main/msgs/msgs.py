@@ -1,6 +1,6 @@
 def useroutput(record):
     return f'''
-№: {record.id}\t{record.name}'''
+#{record.id}#\t{record.name}'''
 
 def userbigouput(record, ti):
     

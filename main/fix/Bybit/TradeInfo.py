@@ -51,6 +51,9 @@ class SmallBybit():
     def endnclose(self, symbol):
         resp = self.cl.market_close_short(symbol)
         self.cl.market_close_long(symbol)
+        self.cl.cancel_all_limit_orders(symbol, 'Buy')
+        self.cl.cancel_all_limit_orders(symbol, 'Sell')
+
 
     def update(self, a):
         # return 0
