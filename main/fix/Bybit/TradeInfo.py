@@ -49,8 +49,21 @@ class SmallBybit():
             self.coinControl[symbol].orders = len(response) - self.coinControl[symbol].tps
 
     def endnclose(self, symbol):
-        resp = self.cl.market_close_short(symbol)
-        self.cl.market_close_long(symbol)
+        resp = self.cl.position_size_sell(symbol)
+        status = 'Sell'
+        d = {'Sell': 2, 'Buy': 1}
+        for pos in resp['result']['list']:
+            if pos['positionIdx'] == d[status]:
+                psize = pos['size']
+                if psize != "0":
+                    self.cl.market_close_short(symbol, psize)
+
+        status = 'Buy'
+        for pos in resp['result']['list']:
+            if pos['positionIdx'] == d[status]:
+                psize = pos['size']
+                if psize != "0":
+                    self.cl.market_close_long(symbol, psize)
         self.cl.cancel_all_limit_orders(symbol, 'Buy')
         self.cl.cancel_all_limit_orders(symbol, 'Sell')
 

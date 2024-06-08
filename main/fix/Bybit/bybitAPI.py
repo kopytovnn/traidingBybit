@@ -346,23 +346,33 @@ class Client:
             
         return
     
-    def market_close_short(self, symbol):
+    def market_close_short(self, symbol, size):
         params = {"symbol": symbol,
                   "side": "Buy",
                   "orderType": 'Market',
-                  "qty": "1000000",
+                  "qty": size,
                   "category": 'linear',
                   "positionIdx": 2
             }
 
         resp = self._postOrder('/v5/order/create', params)
 
+    
+    def position_size_sell(self, symbol):
+        params = {
+            "symbol": symbol,
+            "category": "linear",
+        }
 
-    def market_close_long(self, symbol):
+        resp = self._get('/v5/position/list', params)
+        return resp
+
+
+    def market_close_long(self, symbol, size):
         params = {"symbol": symbol,
                   "side": "Sell",
                   "orderType": 'Market',
-                  "qty": "1000000",
+                  "qty": size,
                   "category": 'linear',
                   "positionIdx": 1
             }
