@@ -192,8 +192,9 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("bybit_stop_"))
 async def stopany(callback: types.CallbackQuery, state: FSMContext):
-    uid=int(callback.data.split('_')[2])
-    tasks[uid].terminate()
+    user_data = await state.get_data()
+    aid = int(user_data['aid'])
+    tasks[aid].terminate()
     await callback.message.answer("ByBit останвлен")
 
 
@@ -201,11 +202,13 @@ async def stopany(callback: types.CallbackQuery, state: FSMContext):
 async def stopclose(callback: types.CallbackQuery, state: FSMContext):
     uid=int(callback.data.split('_')[2])
     user_data = await state.get_data()
-    aid = user_data['aid']
+    aid = int(user_data['aid'])
+    print(tasks, uid, aid)
+    # tasks[aid].terminate()
     try:
-        tasks[uid].terminate()
-    except BaseException:
-        print("Cannot terminate process")
+        tasks[aid].terminate()
+    except BaseException as e:
+        print("Cannot terminate process\n\n", e)
     with Session(engine) as session:
         u = session.query(user.API).filter(user.API.id == aid).all()[0]
         print(u)
