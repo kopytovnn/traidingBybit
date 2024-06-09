@@ -17,6 +17,32 @@ import multiprocessing as mp
 
 from app.handlers import adduser, allusers
 
+from typing import Callable, Dict, Any, Awaitable
+from aiogram import BaseMiddleware
+from aiogram.types import TelegramObject
+from aiogram import Dispatcher, types
+
+class SomeMiddleware(BaseMiddleware):
+    def __init__(self, allowed_users):
+        super().__init__()
+        self.allowed_users = allowed_users
+
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any]
+    ) -> Any:
+        # print(event.chat)
+        user_id = event.chat.id
+        if user_id not in self.allowed_users:
+            return 0
+            # raise CancelHandler()  # Остановка дальнейшей обработки
+        result = await handler(event, data)
+        print("After handler")
+        return result
+
+
 
 async def main():
     logging.basicConfig(
@@ -26,6 +52,12 @@ async def main():
 
     dp = Dispatcher(storage=MemoryStorage())
     bot = Bot(TOKEN)
+
+    allowed_users = [348691698, 540862463, 925216062]
+
+    common.router.message.middleware(SomeMiddleware(allowed_users))
+    adduser.router.message.middleware(SomeMiddleware(allowed_users))
+    allusers.router.message.middleware(SomeMiddleware(allowed_users))
 
     dp.include_router(common.router)
     dp.include_router(adduser.router)
