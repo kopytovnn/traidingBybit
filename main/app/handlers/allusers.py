@@ -53,12 +53,20 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
         for u in all_users:
             textanswer += msgs.useroutput(u) + '\n'
 
-        await callback.message.answer(
-            text=textanswer,
-        )
-        await callback.message.answer(
-            text="Введите порядковый номер пользователя"
-        )
+        try:
+            await callback.message.answer(
+                text=textanswer,
+            )
+            await callback.message.answer(
+                text="Введите порядковый номер пользователя"
+            )
+        except Exception:
+            await callback.answer(
+                text=textanswer,
+            )
+            await callback.answer(
+                text="Введите порядковый номер пользователя"
+            )
     await state.set_state(ByBitStart.uid.state)
 
 
@@ -184,6 +192,7 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
         # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
         p.start()
         tasks[u.id] = p
+        await asyncio.sleep(20)
 
         from app.handlers.allusers import bybitdeposiotclone
         await bybitdeposiotcloneCB(callback, state)
@@ -246,7 +255,7 @@ async def namechoosen(message: types.Message, state: FSMContext):
             ti.statistics(a.symbol + 'USDT', startTime=user_data["startTime"], stopTime=user_data["stopTime"])
             from aiogram.types import FSInputFile
 
-            doc = FSInputFile(path='C:/Users/Коля/PycharmProjects/tradeBot/out.csv', filename=f'{a.symbol}.csv')
+            doc = FSInputFile(path='./out.csv', filename=f'{a.symbol}.csv')
             await message.answer_document(document=doc)
             print(user_data)
 

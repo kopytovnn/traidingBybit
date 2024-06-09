@@ -308,12 +308,12 @@ class Client:
     def get_closed_PnL(self, symbol, startTime=None, stopTime=None):
         params = {
             "category": "linear",
-            "symbol": symbol
+            # "symbol": symbol
         }
         if startTime and stopTime:
             params = {
                 "category": "linear",
-                "symbol": symbol,
+                # "symbol": symbol,
                 "startTime": startTime,
                 "endTime": stopTime
             }

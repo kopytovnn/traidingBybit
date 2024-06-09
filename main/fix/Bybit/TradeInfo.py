@@ -105,7 +105,12 @@ class SmallBybit():
             # print(response)
 
         import pandas as pd
-        pd.DataFrame(tr).to_csv('out.csv', index=False)
+        import datetime
+        df = pd.DataFrame(tr)
+        df["updatedTime"] = [datetime.datetime.fromtimestamp(int(i) / 1000.0) for i in df["updatedTime"]]
+        df["createdTime"] = [datetime.datetime.fromtimestamp(int(i) / 1000.0) for i in df["createdTime"]]
+        df["closedPnl"] = [i.replace('.', ',') for i in df["closedPnl"]]        
+        df.to_csv('out.csv', index=False)
 
 
         print(response)
