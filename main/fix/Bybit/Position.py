@@ -46,12 +46,7 @@ class ShortPosition(Position):
     def takeProfit(self):
         super().Update()
         price = self.price * (1 - 0.1 / self.leverage)
-        try:
-            return super().takeProfit(price, 'Sell')
-        except:
-            print(self)
-            print(price)
-            return super().takeProfit(price, 'Buy')
+        return super().takeProfit(price, 'Sell')
     
     def takeProfit80(self):
         super().Update()
@@ -69,12 +64,7 @@ class LongPosition(Position):
     def takeProfit(self):
         super().Update()
         price = self.price * (1 + 0.1 / self.leverage)
-        try:
-            return super().takeProfit(price, 'Buy')
-        except:
-            print(self)
-            print(price)
-            return super().takeProfit(price, 'Sell')
+        return super().takeProfit(price, 'Buy')
     
     def takeProfit80(self):
         super().Update()
