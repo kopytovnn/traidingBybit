@@ -1,23 +1,17 @@
 from fix.Bybit.bybitAPI import Client
+from fix.Bybit.Order import *
+from fix.Bybit.Position import *
 from fix.Bybit.config import *
 
 
+symbol = 'DOGEUSDT'
+leverage = 20
+
 cl = Client(API_KEY, SECRET_KEY)
-cl.switch_position_mode("MANAUSDT", 3)
-resp = cl.position_size_sell("MANAUSDT")
+# cl.switch_position_mode(symbol, 3)
 
 status = 'Sell'
-d = {'Sell': 2, 'Buy': 1}
-for pos in resp['result']['list']:
-    if pos['positionIdx'] == d[status]:
-        psize = pos['size']
-        if psize != "0":
-            cl.market_close_short('MANAUSDT', psize)
-
-status = 'Buy'
-for pos in resp['result']['list']:
-    if pos['positionIdx'] == d[status]:
-        psize = pos['size']
-        if psize != "0":
-            cl.market_close_long('MANAUSDT', psize)
-# cl.market_close_long("MANAUSDT")
+try:
+    print(cl.market_tp(symbol, 0.14110, 2))
+except:
+    print(cl.market_tp(symbol, 0.14110, 1))

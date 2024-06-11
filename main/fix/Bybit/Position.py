@@ -1,7 +1,7 @@
 from fix.Bybit.bybitAPI import Client
 
 
-class   Position:
+class Position:
     positionIdxMap = {'Buy': 1, 'Sell': 2}
 
     def __init__(self, cl: Client, symbol: str, side: str, leverage: int) -> None:
@@ -44,10 +44,17 @@ class ShortPosition(Position):
         return super().Update()
     
     def takeProfit(self):
+        super().Update()
         price = self.price * (1 - 0.1 / self.leverage)
-        return super().takeProfit(price, 'Sell')
+        try:
+            return super().takeProfit(price, 'Sell')
+        except:
+            print(self)
+            print(price)
+            return super().takeProfit(price, 'Buy')
     
     def takeProfit80(self):
+        super().Update()
         price = self.price * (1 - 0.8 / self.leverage)
         return super().takeProfit(price, 'Sell')
     
@@ -60,9 +67,16 @@ class LongPosition(Position):
         return super().Update()
     
     def takeProfit(self):
+        super().Update()
         price = self.price * (1 + 0.1 / self.leverage)
-        return super().takeProfit(price, 'Buy')
+        try:
+            return super().takeProfit(price, 'Buy')
+        except:
+            print(self)
+            print(price)
+            return super().takeProfit(price, 'Sell')
     
     def takeProfit80(self):
+        super().Update()
         price = self.price * (1 + 0.8 / self.leverage)
         return super().takeProfit(price, 'Buy')
