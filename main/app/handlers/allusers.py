@@ -43,6 +43,36 @@ class ByBitStart(StatesGroup):
     statistics = State()
 
 
+@router.message(Command("monitoring"))
+@router.callback_query(F.data == "monitoring")
+async def monitoring(callback: types.CallbackQuery, state: FSMContext):
+    with Session(engine) as session:
+        all_users = session.query(user.User).all()
+        textanswer = ""
+        for u in all_users:
+            textanswer += msgs.useroutput(u) + '\n'
+            for a in u.apis:
+                ti = TradeInfo.SmallBybit(a.bybitapi, a.bybitsecret)
+                ti.update(a)
+                textanswer += msgs.apimonitoringoutput(a, ti)
+
+        try:
+            await callback.message.answer(
+                text=textanswer,
+            )
+            await callback.message.answer(
+                text="Введите порядковый номер пользователя"
+            )
+        except Exception:
+            await callback.answer(
+                text=textanswer,
+            )
+            await callback.answer(
+                text="Введите порядковый номер пользователя"
+            )
+    await state.set_state(ByBitStart.uid.state)
+
+
 @router.message(Command("all_users"))
 @router.callback_query(F.data == "all_users")
 async def allusers(callback: types.CallbackQuery, state: FSMContext):

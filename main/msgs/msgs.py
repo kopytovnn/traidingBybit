@@ -10,3 +10,6 @@ def userbigouput(record, ti):
 Api ключи: {ti.apiStatus}
 Мониторинг:
 {ti.monitoring()}\n'''
+
+def apimonitoringoutput(record, ti):
+    return f'\t{ti.monitoring().replace("Позиций: ", "").replace(", Ордеров: ", "").replace(", ТП: ", "")}'
