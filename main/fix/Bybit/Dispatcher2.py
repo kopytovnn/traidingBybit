@@ -120,12 +120,14 @@ class Dispatcher:
 
     async def longAlgo(self):
         startPrice = self.tokenPrice()
+        print(f'longAlgo startPrice {startPrice}')
         step = 1
         baseDepo = self.depo / startPrice
 
         minus = 0
 
         position = LongPosition(self.cl, self.symbol, self.leverage)
+        print(f'longAlgo position {position}')
         position.Update()
         if position.price != 0:
             print('Long pos exists!')
@@ -154,6 +156,7 @@ class Dispatcher:
             position.Update()
             position.takeProfit()
             print(position)
+
 
         limitQty = baseDepo * self.valueMap[step + 1] - minus
         limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)

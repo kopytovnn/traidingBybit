@@ -109,6 +109,15 @@ async def delete_user(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer("Пользователь удален")
 
 
+@router.callback_query(F.data.startswith("delete_api_"))
+async def delete_api(callback: types.CallbackQuery, state: FSMContext):
+    aid = int(callback.data.split('_')[2])
+    with Session(engine) as session:
+        session.query(user.API).filter(user.API.id == aid).delete()
+        session.commit()
+    await callback.message.answer("Api удален")
+
+
 @router.message(ByBitStart.uid)
 async def bybitdeposiot(message: types.Message, state: FSMContext):
     await state.update_data(uid=int(message.text.lower()))
@@ -311,7 +320,8 @@ async def bybitsymbol(callback: types.CallbackQuery, state: FSMContext):
     builder = InlineKeyboardBuilder()
     row = [[buttons.STARTBYBIT(user_data["uid"])],
            [buttons.STOPBYBIT(user_data["uid"]), buttons.STOPCLOSEBYBIT(user_data["uid"])],
-           [buttons.CHANGE_API, buttons.CHANGE_DEPOSIT], ]
+           [buttons.CHANGE_API, buttons.CHANGE_DEPOSIT], 
+           [buttons.DELETEAPI(user_data["aid"])], ]
     kb = InlineKeyboardMarkup(inline_keyboard=row, resize_keyboard=True)
 
 

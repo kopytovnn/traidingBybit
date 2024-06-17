@@ -96,3 +96,10 @@ def DELETEUSER(uid):
         text="Удалить",
         callback_data=f"delete_user_{uid}"
     )
+
+
+def DELETEAPI(aid):
+    return types.InlineKeyboardButton(
+        text="Удалить",
+        callback_data=f"delete_api_{aid}"
+    )
