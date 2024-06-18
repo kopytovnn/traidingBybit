@@ -52,7 +52,7 @@ class Client:
             signature = hmac.new(self.secretkey.encode('utf8'), paramsForHash.encode('utf8'), hashlib.sha256).hexdigest()
             sortParamsToSend['sign'] = signature
             response = get(url, params=sortParamsToSend, headers={}, timeout=5).json()
-            # print(response)
+            print(response)
             return response
         # response = aye(url, params)
         response = None
@@ -60,6 +60,7 @@ class Client:
             try:
                 response = aye(url, params)
                 if response['retMsg'] in ERROR_MSGS or 'TakeProfit' in response['retMsg']:
+                    print('Error raised. ', response)
                     raise Exception
                 if response['retMsg'] not in GOOD_MSGS:
                     continue
