@@ -53,8 +53,15 @@ class Dispatcher:
             limitOrder.findncancel()
             print('Short limit orders have been canceled')
             start_qty = baseDepo * self.valueMap[1]
+            
             # print(start_qty, position.qty)
-            step = int(round(position.qty * position.price / start_qty, 0)) + 1
+            print(start_qty, position.price, startPrice, position.qty, 
+                  start_qty * startPrice, start_qty * position.price)
+            startValueUsdt = start_qty * startPrice
+            ratio = position.qty / startValueUsdt
+            from math import log
+            step = round(log(ratio, 2), 0) + 1
+
             marketOrder = ShortMarketOrder(self.cl, self.symbol)
             marketOrder.price = position.price
             print('Short step', step)
@@ -130,13 +137,21 @@ class Dispatcher:
         if position.price != 0:
             print('Long pos exists!')
             position.takeProfit()
+
             print('Long tp corrected')
             limitOrder = LongLimitOrder(self.cl, self.symbol)
             limitOrder.findncancel()
             print('Long limit orders have been canceled')
             start_qty = baseDepo * self.valueMap[1]
             # print(start_qty, position.qty)
-            step = int(round(position.qty * position.price / start_qty, 0)) + 1
+
+            print(start_qty, position.price, startPrice, position.qty, 
+                  start_qty * startPrice, start_qty * position.price)
+            startValueUsdt = start_qty * startPrice
+            ratio = position.qty / startValueUsdt
+            from math import log
+            step = round(log(ratio, 2), 0) + 1
+
             marketOrder = LongMarketOrder(self.cl, self.symbol)
             marketOrder.price = position.price
             print('Long step', step)
