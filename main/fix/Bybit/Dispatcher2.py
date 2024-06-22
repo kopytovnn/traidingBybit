@@ -124,8 +124,6 @@ class Dispatcher:
         step = 1
         baseDepo = self.depo / startPrice
 
-        minus = 0
-
         position = LongPosition(self.cl, self.symbol, self.leverage)
         print(f'longAlgo position {position}')
         position.Update()
@@ -134,15 +132,11 @@ class Dispatcher:
             position.takeProfit()
             print('Long tp corrected')
             limitOrder = LongLimitOrder(self.cl, self.symbol)
-            partional_orders = limitOrder.partional_orders()
             limitOrder.findncancel()
             print('Long limit orders have been canceled')
             start_qty = baseDepo * self.valueMap[1]
             # print(start_qty, position.qty)
             step = int(round(position.qty * position.price / start_qty, 0)) + 1
-            # print(f'Good amt: {start_qty * 2 ** step}, Real: {(position.qty / position.price)}')
-            # if position.qty / position.price > start_qty * 2 ** step:
-            #     minus = position.qty / position.price - start_qty * 2 ** step
             marketOrder = LongMarketOrder(self.cl, self.symbol)
             marketOrder.price = position.price
             print('Long step', step)
@@ -158,13 +152,12 @@ class Dispatcher:
             print(position)
 
 
-        limitQty = baseDepo * self.valueMap[step + 1] - minus
+        limitQty = baseDepo * self.valueMap[step + 1]
         limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
         limitOrder = LongLimitOrder(self.cl, self.symbol)
-        limitOrder.open((position.qty - minus) / limitPrice, limitPrice)
+        limitOrder.open((position.qty) / limitPrice, limitPrice)
         print('\t' * 2, position.qty, position.price, startPrice)
-        # print(limitOrder)
-
+        print(limitOrder)
         await asyncio.sleep(1)
 
         while True:
@@ -216,6 +209,8 @@ class Dispatcher:
                 print(e)
             print('Short Algo ended')
 
+            self.checkPnL("Sell")
+
     async def longLoop(self):
         # while True:
         #     await self.longAlgo()
@@ -226,6 +221,30 @@ class Dispatcher:
             except BaseException as e:
                 print(e)
             print('Long Algo ended')
+
+            self.checkPnL("Buy")
+
+
+    def checkPnL(self, side):
+        closedPnL = self.cl.get_closed_PnL_symbol(self.symbol)['result']['list']
+        for pos in closedPnL:
+            if pos['side'] == side:
+                pnlvalue = float(pos['closedPnl'])
+                if pnlvalue < 0:
+                    tgmsg = {
+                        'Type': "PnL",
+                        'User Id': "-",
+                        'symbol': self.symbol,
+                        'PnL': pnlvalue
+                    }
+                    import json
+                    import time
+                    
+                    t = time.time()
+                    with open('main/tgmsgs/' + str(t), "w") as fp:
+                        json.dump(tgmsg , fp)
+                    break
+                print(pos)
 
 
     def geventEngineStart(self):

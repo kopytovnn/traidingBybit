@@ -55,6 +55,11 @@ async def main():
 
     allowed_users = [348691698, 540862463, 925216062]
 
+    background_tasks = set()
+
+    import bckg
+    asyncio.create_task(bckg.newreports(bot))
+
     common.router.message.middleware(SomeMiddleware(allowed_users))
     adduser.router.message.middleware(SomeMiddleware(allowed_users))
     allusers.router.message.middleware(SomeMiddleware(allowed_users))
