@@ -29,6 +29,7 @@ class Position:
                     self.qty = 0
 
     def takeProfit(self, price, side):
+        print(f'takeProfit: {price}, Position price: {self.price}')
         positionIdx = self.positionIdxMap[side]
         resp = self.cl.market_tp(symbol=self.symbol,
                                  price=price,
@@ -49,7 +50,11 @@ class ShortPosition(Position):
     def takeProfit(self):
         super().Update()
         price = self.price * (1 - 0.1 / self.leverage)
-        return super().takeProfit(price, 'Sell')
+        try:
+            return super().takeProfit(price, 'Sell')
+        except:
+            print(self.qty)
+            return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
     
     def takeProfit80(self):
         super().Update()
@@ -67,7 +72,10 @@ class LongPosition(Position):
     def takeProfit(self):
         super().Update()
         price = self.price * (1 + 0.1 / self.leverage)
-        return super().takeProfit(price, 'Buy')
+        try:
+            return super().takeProfit(price, 'Buy')
+        except:
+            return self.cl.market_close_long(self.symbol, str(self.qty / self.price))
     
     def takeProfit80(self):
         super().Update()
