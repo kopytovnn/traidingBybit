@@ -11,6 +11,7 @@ class Position:
         self.leverage = leverage
         self.price = None
         self.qty = None
+        self.tp = None
 
     def Update(self):
         positionIdx = self.positionIdxMap[self.side]
@@ -21,6 +22,7 @@ class Position:
             # print('\t', position, positionIdx)
             if position['positionIdx'] == positionIdx:
                 self.price = float(position['avgPrice'])
+                self.tp = position['takeProfit']
                 try:
                     self.qty = float(position['positionValue'])
                 except ValueError:
@@ -31,6 +33,7 @@ class Position:
         resp = self.cl.market_tp(symbol=self.symbol,
                                  price=price,
                                  positionIdx=positionIdx)
+        self.tp = price
 
     def __repr__(self) -> str:
         return f'Position type: {type(self)}, price: {self.price}'

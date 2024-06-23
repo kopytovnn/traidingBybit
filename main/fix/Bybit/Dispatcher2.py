@@ -96,13 +96,8 @@ class Dispatcher:
                 print('\n', position, '\n', limitOrder)
                 print('short pos is null')
                 return
-            # if step == 8:
-            #     print('\n', position, '\n', limitOrder)
-            #     position.takeProfit80()
-            #     print('Step 8')
-            #     step += 1
-            #     print('\n', position, '\n', limitOrder)
-            #     continue
+            if not position.tp:
+                position.takeProfit()
             if limitOrder.status == 'Cancelled' and step < 7:
                 print('\n', position, '\n', limitOrder, 'short limit irder filled')
 
@@ -196,6 +191,8 @@ class Dispatcher:
                 print('\n', position, '\n', limitOrder)
                 print('long pos is null')
                 return
+            if not position.tp:
+                position.takeProfit()
             if limitOrder.status == 'Cancelled' and step < 7:
                 print('\n', position, '\n', limitOrder, 'short limit irder filled')
 
