@@ -16,8 +16,13 @@ async def newreports(bot):
                 d = json.loads(f.read())
             for u in allowed_users:
                 try:
-                    await bot.send_message(str(u), str(d))
+                    if d['Type'] == 'PnL':
+                        await bot.send_message(str(u), PnLReport(d))
                 except:
                     pass
             os.remove('./main/tgmsgs/' + report)
+
+
+def PnLReport(d):
+    return f'Внимание! Отрицательный PnL!\nПользователь: {d["User Id"]}\nМонета: {d["symbol"]}'
             

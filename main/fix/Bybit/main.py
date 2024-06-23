@@ -5,13 +5,13 @@ from fix.Bybit.Dispatcher2 import Dispatcher
 import asyncio
 
 
-def start(apikey, secretkey, symbol, deposit):
+def start(apikey, secretkey, symbol, deposit, uid=None):
     print(apikey, secretkey, symbol, deposit)
     cl = Client(apikey, secretkey)
 
     leverage = 20
 
-    dp = Dispatcher(cl=cl, symbol=symbol, leverage=leverage, depo=deposit)
+    dp = Dispatcher(cl=cl, symbol=symbol, leverage=leverage, depo=deposit, uid=uid)
     print('start')
     asyncio.run(dp.asyncEngineStart())
 

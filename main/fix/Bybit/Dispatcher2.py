@@ -24,12 +24,13 @@ class Dispatcher:
                 7: 10,
                 8: 15}
 
-    def __init__(self, cl: Client, symbol: str, leverage: int, depo: float) -> None:
+    def __init__(self, cl: Client, symbol: str, leverage: int, depo: float, uid=None) -> None:
         self.cl = cl
         self.symbol = symbol
         self.leverage = leverage
         self.cl.set_leverage(self.symbol, self.leverage)
         self.depo = depo / (100 / self.leverage)
+        self.uid = uid
 
         # test
         # for i in self.stepMap:
@@ -102,6 +103,16 @@ class Dispatcher:
             #     step += 1
             #     print('\n', position, '\n', limitOrder)
             #     continue
+            if limitOrder.status == 'Cancelled' and step < 7:
+                print('\n', position, '\n', limitOrder, 'short limit irder filled')
+
+                limitPrice = limitOrder.price
+                limitQty = limitOrder.qty
+                limitOrder = ShortLimitOrder(self.cl, self.symbol)
+                limitOrder.open(limitQty, limitPrice)
+                limitOrder.Update()
+                print('\n', position, '\n', limitOrder)
+
             if limitOrder.status == 'Filled' and step < 7:
                 print('\n', position, '\n', limitOrder, 'short limit irder filled')
                 position.Update()
@@ -185,13 +196,16 @@ class Dispatcher:
                 print('\n', position, '\n', limitOrder)
                 print('long pos is null')
                 return
-            # if step == 7:
-            #     print('\n', position, '\n', limitOrder)
-            #     position.takeProfit80()
-            #     print('Step 8')
-            #     step += 1
-            #     print('\n', position, '\n', limitOrder)
-            #     continue
+            if limitOrder.status == 'Cancelled' and step < 7:
+                print('\n', position, '\n', limitOrder, 'short limit irder filled')
+
+                limitPrice = limitOrder.price
+                limitQty = limitOrder.qty
+                limitOrder = LongLimitOrder(self.cl, self.symbol)
+                limitOrder.open(limitQty, limitPrice)
+                limitOrder.Update()
+                print('\n', position, '\n', limitOrder)
+
             if limitOrder.status == 'Filled' and step < 7:
                 print('\n', position, '\n', limitOrder, 'long limit irder filled')
                 position.Update()
@@ -248,7 +262,7 @@ class Dispatcher:
                 if pnlvalue < 0:
                     tgmsg = {
                         'Type': "PnL",
-                        'User Id': "-",
+                        'User Id': self.uid,
                         'symbol': self.symbol,
                         'PnL': pnlvalue
                     }

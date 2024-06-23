@@ -226,7 +226,7 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
 
         from fix.Bybit.main import start
 
-        p = Process(target=start, args=(str(u.bybitapi), str(u.bybitsecret), user_data["symbol"] + 'USDT', float(u.deposit)))
+        p = Process(target=start, args=(str(u.bybitapi), str(u.bybitsecret), user_data["symbol"] + 'USDT', float(u.deposit), user_data["uid"]))
         p.daemon = True
         # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
         p.start()
