@@ -229,6 +229,8 @@ class Dispatcher:
         while True:
             # await self.shortAlgo()
             print('Short Algo started')
+            self.cl.cancel_all_limit_orders(self.symbol, 'Sell')
+            print('Short limits cancelled')
             try:
                 await self.shortAlgo()
             except BaseException as e:
@@ -242,6 +244,8 @@ class Dispatcher:
         #     await self.longAlgo()
         while True:
             print('Long Algo started')
+            self.cl.cancel_all_limit_orders(self.symbol, 'Buy')
+            print("long limits cancelled")
             try:
                 await self.longAlgo()
             except BaseException as e:
