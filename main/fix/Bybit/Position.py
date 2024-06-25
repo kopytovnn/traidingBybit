@@ -53,8 +53,11 @@ class ShortPosition(Position):
         try:
             return super().takeProfit(price, 'Sell')
         except:
-            print(self.qty)
-            return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
+            if self.cl.kline_price(self.symbol)['price'] < self.price:
+                print(f'''self.cl.kline_price(self.symbol)['price'] = {self.cl.kline_price(self.symbol)['price']}
+                    self.price = {self.price}
+                    Short''')
+                return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
     
     def takeProfit80(self):
         super().Update()
@@ -75,7 +78,12 @@ class LongPosition(Position):
         try:
             return super().takeProfit(price, 'Buy')
         except:
-            return self.cl.market_close_long(self.symbol, str(self.qty / self.price))
+            if self.cl.kline_price(self.symbol)['price'] > self.price:
+                print(f'''self.cl.kline_price(self.symbol)['price'] = {self.cl.kline_price(self.symbol)['price']}
+                    self.price = {self.price}
+                    Long''')
+                return self.cl.market_close_long(self.symbol, str(self.qty / self.price))
+            
     
     def takeProfit80(self):
         super().Update()
