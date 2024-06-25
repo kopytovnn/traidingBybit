@@ -260,6 +260,7 @@ class Dispatcher:
         for pos in closedPnL:
             if pos['side'] == side:
                 pnlvalue = float(pos['closedPnl'])
+                print('\t\t\t', pos)
                 if pnlvalue < 0:
                     tgmsg = {
                         'Type': "PnL",
@@ -274,8 +275,7 @@ class Dispatcher:
                     with open('main/tgmsgs/' + str(t), "w") as fp:
                         json.dump(tgmsg , fp)
                     break
-                print(pos)
-
+                break
 
     def geventEngineStart(self):
         import gevent
