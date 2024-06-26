@@ -237,7 +237,7 @@ class Dispatcher:
                 print(e)
             print('Short Algo ended')
 
-            self.checkPnL("Sell")
+            self.checkPnL("Buy")
 
     async def longLoop(self):
         # while True:
@@ -252,7 +252,7 @@ class Dispatcher:
                 print(e)
             print('Long Algo ended')
 
-            self.checkPnL("Buy")
+            self.checkPnL("Sell")
 
 
     def checkPnL(self, side):

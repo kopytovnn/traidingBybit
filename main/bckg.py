@@ -24,5 +24,5 @@ async def newreports(bot):
 
 
 def PnLReport(d):
-    return f'Внимание! Отрицательный PnL!\nПользователь: {d["User Id"]}\nМонета: {d["symbol"]}'
+    return f'Внимание! Отрицательный PnL!\nПользователь: {d["User Id"]}\nМонета: {d["symbol"]}\nPnL: {d["PnL"]}'
             
