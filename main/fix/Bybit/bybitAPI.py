@@ -284,6 +284,7 @@ class Client:
         for order in resp:
             if order['orderType'] == 'Limit' and order['side'] == side and order['positionIdx'] == positionidx and order['orderStatus'] == 'New':
                 resp = self.cancel_order(symbol, order['orderId'])
+                print("\t\tcancel_all_limit_orders\t", resp)
         return resp
     
     def get_all_partionally_filled_orders(self, symbol, side):
@@ -361,7 +362,7 @@ class Client:
                   "positionIdx": {2: 1, 1: 2}[position["positionIdx"]]
                 }
             print(params)
-            
+            print("MARKET CLOSE ORDER", params)
             resp = self._postOrder('/v5/order/create', params)
             print()
             print()
@@ -376,6 +377,7 @@ class Client:
                   "category": 'linear',
                   "positionIdx": 2
             }
+        print("MARKET CLOSE SHORT", params)
 
         resp = self._postOrder('/v5/order/create', params)
 
@@ -398,6 +400,7 @@ class Client:
                   "category": 'linear',
                   "positionIdx": 1
             }
+        print("MARKET CLOSE LONG", params)
 
         resp = self._postOrder('/v5/order/create', params)
     

@@ -57,6 +57,7 @@ class ShortPosition(Position):
                 print(f'''self.cl.kline_price(self.symbol)['price'] = {self.cl.kline_price(self.symbol)['price']}
                     self.price = {self.price}
                     Short''')
+                
                 return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
     
     def takeProfit80(self):
