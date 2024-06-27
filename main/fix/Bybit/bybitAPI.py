@@ -98,10 +98,17 @@ class Client:
             try:
                 response = aye(url, params)
                 if response['retMsg'] in ERROR_MSGS or 'TakeProfit' in response['retMsg']:
-                    print('Error raised. ', response)
+                    print('Error raised. ', response, url, params)
                     raise Exception
                 if response['retMsg'] not in GOOD_MSGS:
-                    print("response['retMsg'] not in GOOD_MSGS", response)
+                    print("response['retMsg'] not in GOOD_MSGS", response, url, params)
+                    if response['retMsg'] == 'Qty invalid':
+                        print()
+                        print()
+                        print(url)
+                        print(params)
+                        print(response)
+                        print()
                     continue
                 return response
             except requests.exceptions.ConnectionError:
