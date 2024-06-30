@@ -18,6 +18,10 @@ async def newreports(bot):
                 try:
                     if d['Type'] == 'PnL':
                         await bot.send_message(str(u), PnLReport(d))
+                    if d['Type'] == 'TakeProfit':
+                        await bot.send_message(str(u), TakeProfitReport(d))
+                    if d['Type'] == 'Limit':
+                        await bot.send_message(str(u), LimitReport(d))
                 except:
                     pass
             os.remove('./main/tgmsgs/' + report)
@@ -26,3 +30,10 @@ async def newreports(bot):
 def PnLReport(d):
     return f'Внимание! Отрицательный PnL!\nПользователь: {d["User Id"]}\nМонета: {d["symbol"]}\nPnL: {d["PnL"]}'
             
+
+def LimitReport(d):
+    return f'Внимание. Лимитный ордер восстановлен.\nПользователь: {d["User Id"]}\nМонета: {d["symbol"]}'
+
+
+def TakeProfitReport(d):
+    return f'Внимание. Take Profit ордер восстановлен.\nПользователь: {d["User Id"]}\nМонета: {d["symbol"]}'

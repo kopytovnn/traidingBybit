@@ -98,8 +98,10 @@ class Dispatcher:
                 return
             if not position.tp:
                 position.takeProfit()
+                self.tprecoveryMSG()
             if limitOrder.status == 'Cancelled' and step < 7:
                 print('\n', position, '\n', limitOrder, 'short limit irder filled')
+                self.limitrecoveryMSG()
 
                 limitPrice = limitOrder.price
                 limitQty = limitOrder.qty
@@ -193,8 +195,10 @@ class Dispatcher:
                 return
             if not position.tp:
                 position.takeProfit()
+                self.tprecoveryMSG()
             if limitOrder.status == 'Cancelled' and step < 7:
                 print('\n', position, '\n', limitOrder, 'short limit irder filled')
+                self.limitrecoveryMSG()
 
                 limitPrice = limitOrder.price
                 limitQty = limitOrder.qty
@@ -276,6 +280,32 @@ class Dispatcher:
                         json.dump(tgmsg , fp)
                     break
                 break
+
+    def tprecoveryMSG(self):
+        tgmsg = {
+            'Type': "TakeProfit",
+            'User Id': self.uid,
+            'symbol': self.symbol,
+        }
+        import json
+        import time
+                    
+        t = time.time()
+        with open('main/tgmsgs/' + str(t), "w") as fp:
+            json.dump(tgmsg , fp)
+
+    def limitrecoveryMSG(self):
+        tgmsg = {
+            'Type': "Limit",
+            'User Id': self.uid,
+            'symbol': self.symbol,
+        }
+        import json
+        import time
+                    
+        t = time.time()
+        with open('main/tgmsgs/' + str(t), "w") as fp:
+            json.dump(tgmsg , fp)
 
     def geventEngineStart(self):
         import gevent
