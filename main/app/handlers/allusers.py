@@ -73,6 +73,15 @@ async def monitoring(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(ByBitStart.uid.state)
 
 
+@router.message(Command("user"))
+@router.callback_query(F.data == "user")
+async def user_by_id(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer(
+        text="Введите порядковый номер пользователя"
+    )
+    await state.set_state(ByBitStart.uid.state)
+
+
 @router.message(Command("all_users"))
 @router.callback_query(F.data == "all_users")
 async def allusers(callback: types.CallbackQuery, state: FSMContext):
