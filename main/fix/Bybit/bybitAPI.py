@@ -12,6 +12,24 @@ GOOD_MSGS = ['OK', 'leverage not modified', 'Position mode is not modified', 'no
 ERROR_MSGS = ["can not set tp/sl/ts for zero position"]
 
 
+roundationMap = {
+    "XRPUSDT": 0,
+    "DOGEUSDT": 0,
+    "BTCUSDT": 3,
+    "ETHUSDT": 2,
+    "ADAUSDT": 0,
+    "LINKUSDT": 1,
+    "XLMUSDT": 0,
+    "DASHUSDT": 2,
+    "NEOUSDT": 2,
+    "TRXUSDT": 0,
+    "EOSUSDT": 1,
+    "LTCUSDT": 1,
+    "APTUSDT": 2,
+    "ATOMUSDT": 0
+}
+
+
 class Client:
     SAPI = 'https://api-testnet.bybit.com'
 
@@ -140,6 +158,7 @@ class Client:
         # print(resp)
 
     def market_open_order(self, symbol='SOLUSDT', side='Buy', qty=10, takeProfit=-1):
+        # qty = round(qty, roundationMap[symbol])
         params = {"symbol": symbol,
                   "side": side,
                   "orderType": 'Market',
@@ -377,6 +396,7 @@ class Client:
         return
     
     def market_close_short(self, symbol, size):
+        size = str(round(float(size), roundationMap[symbol]))
         params = {"symbol": symbol,
                   "side": "Buy",
                   "orderType": 'Market',
@@ -400,6 +420,7 @@ class Client:
 
 
     def market_close_long(self, symbol, size):
+        size = str(round(float(size), roundationMap[symbol]))
         params = {"symbol": symbol,
                   "side": "Sell",
                   "orderType": 'Market',
