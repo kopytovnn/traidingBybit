@@ -115,7 +115,7 @@ async def delete_api(callback: types.CallbackQuery, state: FSMContext):
     with Session(engine) as session:
         session.query(user.API).filter(user.API.id == aid).delete()
         session.commit()
-    await callback.message.answer("Api удален")
+    await callback.message.answer("Монета удалена")
 
 
 @router.message(ByBitStart.uid)
