@@ -249,7 +249,7 @@ async def strat(callback: types.CallbackQuery, state: FSMContext):
         await start_wrapper(state, callback, 2)
         await bybitdeposiotcloneCB(callback, state)
     if strat == 'prof':
-        await callback.message.answer(text='Введите множитель объема')
+        await callback.message.answer(text='Введите % первого ордера')
         await state.set_state(ByBitStart.uservalue)
 
 
@@ -269,8 +269,8 @@ async def start_wrapper(state, callback=None, coef=1):
         u = session.query(user.API).filter(user.API.id == int(user_data["aid"])).all()[0]
 
         from fix.Bybit.main import start
-
-        p = Process(target=start, args=(str(u.bybitapi), str(u.bybitsecret), user_data["symbol"] + 'USDT', float(u.deposit), user_data["uid"], coef))
+        nc = coef / 0.2
+        p = Process(target=start, args=(str(u.bybitapi), str(u.bybitsecret), user_data["symbol"] + 'USDT', float(u.deposit), user_data["uid"], nc))
         p.daemon = True
         # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
         p.start()
