@@ -57,8 +57,14 @@ def TRAIDING_PAIRS(uid):
 def STARTBYBIT(uid):
     return types.InlineKeyboardButton(
         text="Запустить",
-        callback_data=f"bybit_start_{uid}"
+        callback_data=f"bybit_choosestrat_{uid}"
     )
+
+# def CHOOSE(uid):
+#     return types.InlineKeyboardButton(
+#         text="Запустить",
+#         callback_data=f"bybit_start_{uid}"
+#     )
 
 def STOPBYBIT(uid):
     return types.InlineKeyboardButton(
@@ -102,4 +108,25 @@ def DELETEAPI(aid):
     return types.InlineKeyboardButton(
         text="Удалить",
         callback_data=f"delete_api_{aid}"
+    )
+
+
+def STRATEGY_CONSERVO():
+    return types.InlineKeyboardButton(
+        text="Консерв.(0.2%)",
+        callback_data="strategy_conservo"
+    )
+
+
+def STRATEGY_AGRESSIVE():
+    return types.InlineKeyboardButton(
+        text="Агрес.(0.4%)",
+        callback_data="strategy_agressive"
+    )
+
+
+def STRATEGY_PROF():
+    return types.InlineKeyboardButton(
+        text="Польз.",
+        callback_data="strategy_prof"
     )

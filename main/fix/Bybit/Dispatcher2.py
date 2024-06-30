@@ -318,6 +318,8 @@ class Dispatcher:
     async def asyncEngineStart(self):
         self.cl.switch_position_mode(self.symbol, 3)
 
+        print(self.valueMap)
+
         task1 = asyncio.create_task(self.longLoop())
         task2 = asyncio.create_task(self.shortLoop())
 

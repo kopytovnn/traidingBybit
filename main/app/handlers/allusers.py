@@ -37,6 +37,7 @@ class ByBitStart(StatesGroup):
     symbol = State()
     deposit = State()
     stop = State()
+    uservalue = State()
     gofromadding = State()
     beforedate = State()
     afterdate = State()
@@ -148,6 +149,7 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
         
 async def bybitdeposiotclone(message: types.Message, state: FSMContext):
     # await state.update_data(uid=int(uid))
+    await asyncio.sleep(20)
     user_data = await state.get_data()
     print(user_data)
     with Session(engine) as session:
@@ -166,6 +168,7 @@ async def bybitdeposiotclone(message: types.Message, state: FSMContext):
 
 async def bybitdeposiotcloneCB(callback: types.CallbackQuery, state: FSMContext):
     # await state.update_data(uid=int(uid))
+    await asyncio.sleep(20)
     user_data = await state.get_data()
     print(user_data)
     with Session(engine) as session:
@@ -225,22 +228,60 @@ async def activepairs(callback: types.CallbackQuery, state: FSMContext):
                                       reply_markup=builder.as_markup())
         
 
+@router.callback_query(F.data.startswith("bybit_choosestrat_"))
+async def choose_strat(callback: types.CallbackQuery, state: FSMContext):
+    uid = int(callback.data.split('_')[2])
+    builder = InlineKeyboardBuilder()
+    builder.add(buttons.STRATEGY_CONSERVO())
+    builder.add(buttons.STRATEGY_AGRESSIVE())
+    builder.add(buttons.STRATEGY_PROF())
+    await callback.message.answer(text="Выберите активную пару",
+                                  reply_markup=builder.as_markup())
+    
 
-@router.callback_query(F.data.startswith("bybit_start_"))
-async def allusers(callback: types.CallbackQuery, state: FSMContext):
-    await state.update_data(uid=callback.data.split('_')[2])
+@router.callback_query(F.data.startswith("strategy_"))
+async def strat(callback: types.CallbackQuery, state: FSMContext):
+    strat = callback.data.split('_')[1]
+    if strat == 'conservo':
+        await start_wrapper(state, callback, 1)
+        await bybitdeposiotcloneCB(callback, state)
+    if strat == 'agressive':
+        await start_wrapper(state, callback, 2)
+        await bybitdeposiotcloneCB(callback, state)
+    if strat == 'prof':
+        await callback.message.answer(text='Введите множитель объема')
+        await state.set_state(ByBitStart.uservalue)
+
+
+@router.message(ByBitStart.uservalue)
+async def uservalue(message: types.Message, state: FSMContext):
+    await state.update_data(multiplier=message.text)
+
+    multiplier = float(message.text)
+    await start_wrapper(state, coef=multiplier)
+    await bybitdeposiotclone(message, state)
+
+
+
+async def start_wrapper(state, callback=None, coef=1):
     user_data = await state.get_data()
     with Session(engine) as session:
         u = session.query(user.API).filter(user.API.id == int(user_data["aid"])).all()[0]
 
         from fix.Bybit.main import start
 
-        p = Process(target=start, args=(str(u.bybitapi), str(u.bybitsecret), user_data["symbol"] + 'USDT', float(u.deposit), user_data["uid"]))
+        p = Process(target=start, args=(str(u.bybitapi), str(u.bybitsecret), user_data["symbol"] + 'USDT', float(u.deposit), user_data["uid"], coef))
         p.daemon = True
         # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
         p.start()
         tasks[u.id] = p
         await asyncio.sleep(20)
+
+
+@router.callback_query(F.data.startswith("bybit_start_"))
+async def allusers(callback: types.CallbackQuery, state: FSMContext):
+        await state.update_data(uid=callback.data.split('_')[2])
+        await start_wrapper(state, callback)
 
         from app.handlers.allusers import bybitdeposiotclone
         await bybitdeposiotcloneCB(callback, state)
