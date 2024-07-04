@@ -12,6 +12,7 @@ class Position:
         self.price = None
         self.qty = None
         self.tp = None
+        self.pnl = None
 
     def Update(self):
         positionIdx = self.positionIdxMap[self.side]
@@ -21,8 +22,10 @@ class Position:
         for position in resp:
             # print('\t', position, positionIdx)
             if position['positionIdx'] == positionIdx:
+                print(resp)
                 self.price = float(position['avgPrice'])
                 self.tp = position['takeProfit']
+                self.pnl = float(position['cumRealisedPnl'])
                 try:
                     self.qty = float(position['positionValue'])
                 except ValueError:
@@ -53,11 +56,7 @@ class ShortPosition(Position):
         try:
             return super().takeProfit(price, 'Sell')
         except:
-            if self.cl.kline_price(self.symbol)['price'] < self.price:
-                print(f'''self.cl.kline_price(self.symbol)['price'] = {self.cl.kline_price(self.symbol)['price']}
-                    self.price = {self.price}
-                    Short''')
-                
+            if self.pnl > 0:
                 return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
     
     def takeProfit80(self):
@@ -79,10 +78,7 @@ class LongPosition(Position):
         try:
             return super().takeProfit(price, 'Buy')
         except:
-            if self.cl.kline_price(self.symbol)['price'] > self.price:
-                print(f'''self.cl.kline_price(self.symbol)['price'] = {self.cl.kline_price(self.symbol)['price']}
-                    self.price = {self.price}
-                    Long''')
+            if self.pnl > 0:
                 return self.cl.market_close_long(self.symbol, str(self.qty / self.price))
             
     
