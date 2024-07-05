@@ -9,7 +9,7 @@ class Error:
         self.message = {
             "Type": etype,
             "User Id": uid
-        } + params
+        }.update(params)
 
     def publish(self):
         t = time.time()

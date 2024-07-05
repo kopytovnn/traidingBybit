@@ -243,10 +243,10 @@ async def choose_strat(callback: types.CallbackQuery, state: FSMContext):
 async def strat(callback: types.CallbackQuery, state: FSMContext):
     strat = callback.data.split('_')[1]
     if strat == 'conservo':
-        await start_wrapper(state, callback, 1)
+        await start_wrapper(state, callback, 0.2)
         await bybitdeposiotcloneCB(callback, state)
     if strat == 'agressive':
-        await start_wrapper(state, callback, 2)
+        await start_wrapper(state, callback, 0.4)
         await bybitdeposiotcloneCB(callback, state)
     if strat == 'prof':
         await callback.message.answer(text='Введите % первого ордера')
