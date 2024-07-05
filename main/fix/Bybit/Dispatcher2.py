@@ -44,7 +44,7 @@ class Dispatcher:
         step = 1
         baseDepo = self.depo / startPrice
 
-        position = ShortPosition(self.cl, self.symbol, self.leverage)
+        position = ShortPosition(self.cl, self.symbol, self.leverage, self.uid)
         position.Update()
         if position.price != 0:
             print('Short pos exists!')
@@ -72,7 +72,7 @@ class Dispatcher:
             marketOrder.open(qty)
             print(marketOrder)
 
-            position = ShortPosition(self.cl, self.symbol, self.leverage)
+            position = ShortPosition(self.cl, self.symbol, self.leverage, self.uid)
             position.Update()
             position.takeProfit()
             print(position)
@@ -139,7 +139,7 @@ class Dispatcher:
         step = 1
         baseDepo = self.depo / startPrice
 
-        position = LongPosition(self.cl, self.symbol, self.leverage)
+        position = LongPosition(self.cl, self.symbol, self.leverage, self.uid)
         print(f'longAlgo position {position}')
         position.Update()
         if position.price != 0:
@@ -169,7 +169,7 @@ class Dispatcher:
             marketOrder.open(qty)
             print(marketOrder)
 
-            position = LongPosition(self.cl, self.symbol, self.leverage)
+            position = LongPosition(self.cl, self.symbol, self.leverage, self.uid)
             position.Update()
             position.takeProfit()
             print(position)

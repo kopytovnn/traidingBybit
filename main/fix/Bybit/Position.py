@@ -1,14 +1,16 @@
 from fix.Bybit.bybitAPI import Client
+from fix.Bybit.ErrorMessages import *
 
 
 class Position:
     positionIdxMap = {'Buy': 1, 'Sell': 2}
 
-    def __init__(self, cl: Client, symbol: str, side: str, leverage: int) -> None:
+    def __init__(self, cl: Client, symbol: str, side: str, leverage: int, uid=-1) -> None:
         self.cl = cl
         self.symbol = symbol
         self.side = side
         self.leverage = leverage
+        self.uid = uid
         self.price = None
         self.qty = None
         self.tp = None
@@ -22,7 +24,6 @@ class Position:
         for position in resp:
             # print('\t', position, positionIdx)
             if position['positionIdx'] == positionIdx:
-                print(resp)
                 self.price = float(position['avgPrice'])
                 self.tp = position['takeProfit']
                 self.pnl = float(position['cumRealisedPnl'])
@@ -44,8 +45,8 @@ class Position:
 
 
 class ShortPosition(Position):
-    def __init__(self, cl: Client, symbol: str, leverage: int) -> None:
-        super().__init__(cl, symbol, 'Sell', leverage)
+    def __init__(self, cl: Client, symbol: str, leverage: int, uid=-1) -> None:
+        super().__init__(cl, symbol, 'Sell', leverage, uid)
 
     def Update(self):
         return super().Update()
@@ -56,6 +57,14 @@ class ShortPosition(Position):
         try:
             return super().takeProfit(price, 'Sell')
         except:
+            emsg = TPError(self.uid, {
+                'symbol': self.symbol,
+                'side': self.side,
+                'position price': self.price,
+                'tp price': price,
+                'tp': self.tp,
+                'pnl': self.pnl
+            })
             if self.pnl > 0:
                 return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
     
@@ -66,8 +75,8 @@ class ShortPosition(Position):
     
 
 class LongPosition(Position):
-    def __init__(self, cl: Client, symbol: str, leverage: int) -> None:
-        super().__init__(cl, symbol, 'Buy', leverage)
+    def __init__(self, cl: Client, symbol: str, leverage: int, uid=-1) -> None:
+        super().__init__(cl, symbol, 'Buy', leverage, uid)
 
     def Update(self):
         return super().Update()
@@ -78,7 +87,16 @@ class LongPosition(Position):
         try:
             return super().takeProfit(price, 'Buy')
         except:
+            emsg = TPError(self.uid, {
+                'symbol': self.symbol,
+                'side': self.side,
+                'position price': self.price,
+                'tp price': price,
+                'tp': self.tp,
+                'pnl': self.pnl
+            })
             if self.pnl > 0:
+                print('long position - self.pnl > 0', self.pnl)
                 return self.cl.market_close_long(self.symbol, str(self.qty / self.price))
             
     
