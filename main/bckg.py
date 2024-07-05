@@ -22,6 +22,8 @@ async def newreports(bot):
                         await bot.send_message(str(u), TakeProfitReport(d))
                     if d['Type'] == 'Limit':
                         await bot.send_message(str(u), LimitReport(d))
+                    else:
+                        await bot.send_message(str(u), str(d))
                 except:
                     pass
             os.remove('./main/tgmsgs/' + report)
