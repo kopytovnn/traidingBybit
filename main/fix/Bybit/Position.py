@@ -54,6 +54,16 @@ class ShortPosition(Position):
     def takeProfit(self):
         super().Update()
         price = self.price * (1 - 0.1 / self.leverage)
+        print(price)
+        emsg = TPError(self.uid, {
+                'symbol': self.symbol,
+                'side': self.side,
+                'position price': self.price,
+                'tp price': price,
+                'tp': self.tp,
+                'pnl': self.pnl
+        })
+        emsg.publish()
         try:
             return super().takeProfit(price, 'Sell')
         except:
@@ -65,7 +75,8 @@ class ShortPosition(Position):
                 'tp': self.tp,
                 'pnl': self.pnl
             })
-            if self.pnl > 0:
+            emsg.publish()
+            if self.pnl > 0 and self.cl.kline_price(self.symbol)['price'] < self.price:
                 return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
     
     def takeProfit80(self):
@@ -84,6 +95,15 @@ class LongPosition(Position):
     def takeProfit(self):
         super().Update()
         price = self.price * (1 + 0.1 / self.leverage)
+        emsg = TPError(self.uid, {
+                'symbol': self.symbol,
+                'side': self.side,
+                'position price': self.price,
+                'tp price': price,
+                'tp': self.tp,
+                'pnl': self.pnl
+            })
+        emsg.publish()
         try:
             return super().takeProfit(price, 'Buy')
         except:
@@ -95,7 +115,8 @@ class LongPosition(Position):
                 'tp': self.tp,
                 'pnl': self.pnl
             })
-            if self.pnl > 0:
+            emsg.publish()
+            if self.pnl > 0 and self.cl.kline_price(self.symbol)['price'] > self.price:
                 print('long position - self.pnl > 0', self.pnl)
                 return self.cl.market_close_long(self.symbol, str(self.qty / self.price))
             
