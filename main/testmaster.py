@@ -10,6 +10,4 @@ leverage = 20
 cl = Client(API_KEY, SECRET_KEY)
 # cl.switch_position_mode(symbol, 3)
 
-p = LongPosition(cl, 'DOGEUSDT', 20)
-p.Update()
-print(p)
+cl.market_tp("DOGEUSDT", 0.1128, 1)

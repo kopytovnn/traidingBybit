@@ -77,7 +77,8 @@ class ShortPosition(Position):
             })
             emsg.publish()
             if self.pnl > 0 and self.cl.kline_price(self.symbol)['price'] < self.price:
-                return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
+                return 0
+                # return self.cl.market_close_short(self.symbol, str(self.qty / self.price))
     
     def takeProfit80(self):
         super().Update()
@@ -118,7 +119,8 @@ class LongPosition(Position):
             emsg.publish()
             if self.pnl > 0 and self.cl.kline_price(self.symbol)['price'] > self.price:
                 print('long position - self.pnl > 0', self.pnl)
-                return self.cl.market_close_long(self.symbol, str(self.qty / self.price))
+                return 0
+                # return self.cl.market_close_long(self.symbol, str(self.qty / self.price))
             
     
     def takeProfit80(self):
