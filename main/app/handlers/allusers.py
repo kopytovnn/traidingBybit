@@ -47,6 +47,7 @@ class ByBitStart(StatesGroup):
 @router.message(Command("monitoring"))
 @router.callback_query(F.data == "monitoring")
 async def monitoring(callback: types.CallbackQuery, state: FSMContext):
+    state.clear()
     with Session(engine) as session:
         all_users = session.query(user.User).all()
         textanswer = ""
@@ -86,6 +87,7 @@ async def user_by_id(callback: types.CallbackQuery, state: FSMContext):
 @router.message(Command("all_users"))
 @router.callback_query(F.data == "all_users")
 async def allusers(callback: types.CallbackQuery, state: FSMContext):
+    state.clear()
     with Session(engine) as session:
         all_users = session.query(user.User).all()
         textanswer = ""
@@ -112,6 +114,7 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("delete_user_"))
 async def delete_user(callback: types.CallbackQuery, state: FSMContext):
+    state.clear()
     uid = int(callback.data.split('_')[2])
     with Session(engine) as session:
         session.query(user.User).filter(user.User.id == uid).delete()
@@ -121,6 +124,7 @@ async def delete_user(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("delete_api_"))
 async def delete_api(callback: types.CallbackQuery, state: FSMContext):
+    state.clear()
     aid = int(callback.data.split('_')[2])
     with Session(engine) as session:
         session.query(user.API).filter(user.API.id == aid).delete()

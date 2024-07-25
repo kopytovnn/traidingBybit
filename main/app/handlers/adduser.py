@@ -157,6 +157,7 @@ async def bybitdeposiotclone(message: types.Message, state: FSMContext):
         session.commit()
     
         await message.answer("Данные успешно вынесены")
+        state.clear()
 
 
 def register_handlers_bybit_auth(dp: Dispatcher):

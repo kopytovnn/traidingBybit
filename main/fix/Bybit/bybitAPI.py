@@ -407,6 +407,7 @@ class Client:
         print("MARKET CLOSE SHORT", params)
 
         resp = self._postOrder('/v5/order/create', params)
+        print(resp)
 
     
     def position_size_sell(self, symbol):
@@ -431,4 +432,4 @@ class Client:
         print("MARKET CLOSE LONG", params)
 
         resp = self._postOrder('/v5/order/create', params)
-    
+        print(resp)    
