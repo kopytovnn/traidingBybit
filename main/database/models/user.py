@@ -17,6 +17,7 @@ class API(Base):
     deposit = Column(Double(), nullable=True)
     user_id = Column(Integer, ForeignKey("User.id"))
     user = relationship("User", back_populates="apis")
+    pid = Column(String(), nullable=True)
 
 
 

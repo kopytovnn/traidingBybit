@@ -274,7 +274,9 @@ async def start_wrapper(state, callback=None, coef=1):
         p.daemon = True
         # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
         p.start()
+        u.pid = str(p.pid)
         tasks[u.id] = p
+
         await asyncio.sleep(20)
 
 
@@ -423,6 +425,7 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
         p = Process(target=start, args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit)))
         p.daemon = True
         p.start()
+        u.pid = str(p.pid)
         tasks[uid] = p
         await message.reply("BybBit запущен")    
 
