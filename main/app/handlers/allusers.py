@@ -20,7 +20,7 @@ from app.keyboards import buttons
 from fix.Bybit import Dispatcher, TradeInfo
 
 from multiprocessing import Process
-
+import psutil
 
 
 engine = create_engine("sqlite:///Data.db", echo=True)
@@ -275,6 +275,7 @@ async def start_wrapper(state, callback=None, coef=1):
         # args=(str(apikey), str(secretkey), symbol.upper() + 'USDT', float(deposit))
         p.start()
         u.pid = str(p.pid)
+        session.commit()
         tasks[u.id] = p
 
         await asyncio.sleep(20)
@@ -294,7 +295,14 @@ async def allusers(callback: types.CallbackQuery, state: FSMContext):
 async def stopany(callback: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     aid = int(user_data['aid'])
-    tasks[aid].kill()  
+    tasks[aid].kill()
+    try:
+        with Session(engine) as session:
+            a = session.query(user.API).filter(user.API.id == int(user_data["aid"])).all()[0]
+            p = psutil.Process(int(a.pid))
+            p.terminate()
+    except BaseException:
+        print("Error")  
     await callback.message.answer("ByBit останвлен")
 
 
@@ -309,6 +317,13 @@ async def stopclose(callback: types.CallbackQuery, state: FSMContext):
         tasks[aid].kill()
     except BaseException as e:
         print("Cannot terminate process\n\n", e)
+    try:
+        with Session(engine) as session:
+            a = session.query(user.API).filter(user.API.id == int(user_data["aid"])).all()[0]
+            p = psutil.Process(int(a.pid))
+            p.terminate()
+    except BaseException:
+        print("Error")
     with Session(engine) as session:
         u = session.query(user.API).filter(user.API.id == aid).all()[0]
         print(u)
@@ -426,6 +441,7 @@ async def bybitdeposiot(message: types.Message, state: FSMContext):
         p.daemon = True
         p.start()
         u.pid = str(p.pid)
+        session.commit()
         tasks[uid] = p
         await message.reply("BybBit запущен")    
 
