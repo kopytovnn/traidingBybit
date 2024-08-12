@@ -8,7 +8,8 @@ import hashlib
 from requests.adapters import HTTPAdapter, Retry
 
 
-GOOD_MSGS = ['OK', 'leverage not modified', 'Position mode is not modified', 'not modified']
+GOOD_MSGS = ['OK', 'leverage not modified',
+             'Position mode is not modified', 'not modified']
 ERROR_MSGS = ["can not set tp/sl/ts for zero position"]
 
 
@@ -26,7 +27,9 @@ roundationMap = {
     "EOSUSDT": 1,
     "LTCUSDT": 1,
     "APTUSDT": 2,
-    "ATOMUSDT": 0
+    "ATOMUSDT": 0,
+    "BTCUSDT": 3,
+    "ETHUSDT": 2
 }
 
 
@@ -45,7 +48,8 @@ class Client:
 
     def genSignature(self, payload, timeStamp, apiKey, secretKey, recvWindow):
         param_str = str(timeStamp) + apiKey + recvWindow + payload
-        hash = hmac.new(bytes(secretKey, "utf-8"), param_str.encode("utf-8"), hashlib.sha256)
+        hash = hmac.new(bytes(secretKey, "utf-8"),
+                        param_str.encode("utf-8"), hashlib.sha256)
         signature = hash.hexdigest()
         return signature
 
@@ -67,9 +71,11 @@ class Client:
             for key in sortParamsToSend:
                 paramsForHash[key] = sortParamsToSend[key]
             paramsForHash = urlencode(paramsForHash)
-            signature = hmac.new(self.secretkey.encode('utf8'), paramsForHash.encode('utf8'), hashlib.sha256).hexdigest()
+            signature = hmac.new(self.secretkey.encode(
+                'utf8'), paramsForHash.encode('utf8'), hashlib.sha256).hexdigest()
             sortParamsToSend['sign'] = signature
-            response = get(url, params=sortParamsToSend, headers={}, timeout=5).json()
+            response = get(url, params=sortParamsToSend,
+                           headers={}, timeout=5).json()
             # print(response)
             return response
         # response = aye(url, params)
@@ -99,7 +105,8 @@ class Client:
             payload = str(params).replace("'", '"')
 
             recv_window = str(5000)
-            signature = self.genSignature(payload, time_stamp, self.apikey, self.secretkey, recv_window)
+            signature = self.genSignature(
+                payload, time_stamp, self.apikey, self.secretkey, recv_window)
             headers = {
                 'X-BAPI-API-KEY': self.apikey,
                 'X-BAPI-SIGN': signature,
@@ -108,7 +115,8 @@ class Client:
                 'X-BAPI-RECV-WINDOW': recv_window,
                 'Content-Type': 'application/json',
             }
-            response = requests.Session().request('POST', url, headers=headers, data=payload, timeout=5).json()
+            response = requests.Session().request(
+                'POST', url, headers=headers, data=payload, timeout=5).json()
             print(response)
             return response
         response = None
@@ -119,7 +127,8 @@ class Client:
                     print('Error raised. ', response, url, params)
                     raise Exception
                 if response['retMsg'] not in GOOD_MSGS:
-                    print("response['retMsg'] not in GOOD_MSGS", response, url, params)
+                    print("response['retMsg'] not in GOOD_MSGS",
+                          response, url, params)
                     if response['retMsg'] == 'Qty invalid':
                         print()
                         print()
@@ -134,7 +143,7 @@ class Client:
             except requests.exceptions.Timeout:
                 print('timeout')
         # return response
-    
+
     def market_tp(self, symbol, price, positionIdx):
         params = {
             "category": "linear",
@@ -173,8 +182,9 @@ class Client:
         resp = self._postOrder('/v5/order/create', params)
 
         if resp['retMsg'] != 'OK':
-            print(f'WARNING!!! market_open_order(self, {symbol}, {side}, {qty}, ...)', resp)
-            
+            print(
+                f'WARNING!!! market_open_order(self, {symbol}, {side}, {qty}, ...)', resp)
+
         retMsg = resp['retMsg']
         if retMsg == 'OK':
             orderId = resp['result']['orderId']
@@ -201,8 +211,9 @@ class Client:
         retMsg = resp['retMsg']
 
         if resp['retMsg'] != 'OK':
-            print(f'WARNING!!! limit_open_order(self, {symbol}, {side}, {price}, {qty}, ...)', resp)
-        
+            print(
+                f'WARNING!!! limit_open_order(self, {symbol}, {side}, {price}, {qty}, ...)', resp)
+
         if retMsg == 'OK':
             orderId = resp['result']['orderId']
             return {"status": True, "orderId": orderId}
@@ -215,7 +226,7 @@ class Client:
 
         if resp['retMsg'] != 'OK':
             print(f'WARNING!!! order_price(self, {orderId})', resp)
-        
+
         retMsg = resp['retMsg']
         if retMsg == 'OK':
             for order in resp['result']['list']:
@@ -268,7 +279,7 @@ class Client:
                   "interval": "1",
                   "limit": 1}
         resp = self._get('/v5/market/kline', params)
-        
+
         if resp['retMsg'] == 'OK':
             return {'status': True, 'price': float(resp['result']['list'][0][4])}
         return {'status': False, 'retMsg': resp['retMsg']}
@@ -280,7 +291,6 @@ class Client:
         }
         resp = self._get('/v5/position/list', params)
         return resp['result']['list']
-
 
     def cancel_order(self, symbol, orderId):
         params = {
@@ -312,7 +322,7 @@ class Client:
                 resp = self.cancel_order(symbol, order['orderId'])
                 print("\t\tcancel_all_limit_orders\t", resp)
         return resp
-    
+
     def get_all_partionally_filled_orders(self, symbol, side):
         positionidx = {'Sell': 2, 'Buy': 1}[side]
         resp = self.all_orders(symbol)
@@ -321,21 +331,20 @@ class Client:
             if order['orderStatus'] == 'PartiallyFilled' and order['side'] == side and order['positionIdx'] == positionidx and order['orderType'] == 'Limit':
                 orders.append(order)
         return orders
-    
+
     def get_balance(self):
         params = {'accountType': 'UNIFIED',
                   'coin': 'USDT'}
         resp = self._get('/v5/account/wallet-balance', params=params)
         return resp
-    
 
     def close_pos(self, symbol):
         params = {"category": "linear",
                   "symbol": symbol}
-        
+
         resp = self._postOrder('/v5/order/cancel-all', params=params)
         return resp
-    
+
     def get_closed_PnL(self, symbol, startTime=None, stopTime=None):
         params = {
             "category": "linear",
@@ -353,7 +362,7 @@ class Client:
         #     "symbol": symbol,}
         resp = self._get("/v5/position/closed-pnl", params=params)
         return resp
-    
+
     def get_closed_PnL_symbol(self, symbol, startTime=None, stopTime=None):
         params = {
             "category": "linear",
@@ -371,30 +380,29 @@ class Client:
         #     "symbol": symbol,}
         resp = self._get("/v5/position/closed-pnl", params=params)
         return resp
-    
 
     def market_close_order(self, symbol, side, qty=10):
         resp = self.position_price(symbol=symbol,
-                    positionIdx={'Sell': 2, 'Buy': 1}[side])
+                                   positionIdx={'Sell': 2, 'Buy': 1}[side])
         for position in resp:
             if position['side'] != side:
                 continue
             print(position)
             params = {"symbol": symbol,
-                  "side": side,
-                  "orderType": 'Market',
-                  "qty": position["size"],
-                  "category": 'linear',
-                  "positionIdx": {2: 1, 1: 2}[position["positionIdx"]]
-                }
+                      "side": side,
+                      "orderType": 'Market',
+                      "qty": position["size"],
+                      "category": 'linear',
+                      "positionIdx": {2: 1, 1: 2}[position["positionIdx"]]
+                      }
             print(params)
             print("MARKET CLOSE ORDER", params)
             resp = self._postOrder('/v5/order/create', params)
             print()
             print()
-            
+
         return
-    
+
     def market_close_short(self, symbol, size):
         size = str(round(float(size), roundationMap[symbol]))
         params = {"symbol": symbol,
@@ -403,13 +411,12 @@ class Client:
                   "qty": size,
                   "category": 'linear',
                   "positionIdx": 2
-            }
+                  }
         print("MARKET CLOSE SHORT", params)
 
         resp = self._postOrder('/v5/order/create', params)
         print(resp)
 
-    
     def position_size_sell(self, symbol):
         params = {
             "symbol": symbol,
@@ -419,7 +426,6 @@ class Client:
         resp = self._get('/v5/position/list', params)
         return resp
 
-
     def market_close_long(self, symbol, size):
         size = str(round(float(size), roundationMap[symbol]))
         params = {"symbol": symbol,
@@ -428,8 +434,8 @@ class Client:
                   "qty": size,
                   "category": 'linear',
                   "positionIdx": 1
-            }
+                  }
         print("MARKET CLOSE LONG", params)
 
         resp = self._postOrder('/v5/order/create', params)
-        print(resp)    
+        print(resp)

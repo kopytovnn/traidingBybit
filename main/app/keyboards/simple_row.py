@@ -15,11 +15,12 @@ def make_row_keyboard(items: list[str]) -> ReplyKeyboardMarkup:
 def make_inline_keyboard(items: list[str]) -> InlineKeyboardMarkup:
     row = [[COIN(i) for i in items[0: 4]],
            [COIN(i) for i in items[4: 8]],
-           [COIN(i) for i in items[8: 12]],]
+           [COIN(i) for i in items[8: 12]],
+           [COIN(i) for i in items[12:]]]
     return InlineKeyboardMarkup(inline_keyboard=row, resize_keyboard=True)
 
 # def make_inline_keuboard_com(items: list[str]) -> InlineKeyboardMarkup:
-#     row = 
+#     row =
 
 
 # def make_inline_keyboard_BINGX(items: list[str]) -> InlineKeyboardMarkup:
