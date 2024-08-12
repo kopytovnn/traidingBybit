@@ -7,22 +7,22 @@ import asyncio
 
 class Dispatcher:
     valueMap = {1: 0.2,
-                 2: 0.2,
-                 3: 0.4,
-                 4: 0.8,
-                 5: 1.6,
-                 6: 3.2,
-                 7: 6.4,
-                 8: 12.8}
+                2: 0.2,
+                3: 0.4,
+                4: 0.8,
+                5: 1.6,
+                6: 3.2,
+                7: 6.4,
+                8: 12.8}
 
     stepMap = {1: 0,
-                2: 0.3,
-                3: 0.8,
-                4: 1.8,
-                5: 3.2,
-                6: 6,
-                7: 10,
-                8: 15}
+               2: 0.3,
+               3: 0.8,
+               4: 1.8,
+               5: 3.2,
+               6: 6,
+               7: 10,
+               8: 15}
 
     def __init__(self, cl: Client, symbol: str, leverage: int, depo: float, uid=None) -> None:
         self.cl = cl
@@ -48,20 +48,21 @@ class Dispatcher:
         position.Update()
         if position.price != 0:
             print('Short pos exists!')
-            position.takeProfit()
-            print('Short tp corrected')
             limitOrder = ShortLimitOrder(self.cl, self.symbol)
             limitOrder.findncancel()
             print('Short limit orders have been canceled')
             start_qty = baseDepo * self.valueMap[1]
-            
+
             # print(start_qty, position.qty)
-            print(start_qty, position.price, startPrice, position.qty, 
+            print(start_qty, position.price, startPrice, position.qty,
                   start_qty * startPrice, start_qty * position.price)
             startValueUsdt = start_qty * startPrice
             ratio = position.qty / startValueUsdt
             from math import log
             step = round(log(ratio, 2), 0) + 1
+            if step <= 7:
+                position.takeProfit()
+                print('Short tp corrected')
 
             marketOrder = ShortMarketOrder(self.cl, self.symbol)
             marketOrder.price = position.price
@@ -72,11 +73,12 @@ class Dispatcher:
             marketOrder.open(qty)
             print(marketOrder)
 
-            position = ShortPosition(self.cl, self.symbol, self.leverage, self.uid)
+            position = ShortPosition(
+                self.cl, self.symbol, self.leverage, self.uid)
             position.Update()
             position.takeProfit()
             print(position)
-            
+
         limitQty = baseDepo * self.valueMap[step + 1]
         print(step + 1)
 
@@ -100,7 +102,8 @@ class Dispatcher:
                 position.takeProfit()
                 self.tprecoveryMSG()
             if limitOrder.status == 'Cancelled' and step < 7:
-                print('\n', position, '\n', limitOrder, 'short limit irder filled')
+                print('\n', position, '\n', limitOrder,
+                      'short limit irder filled')
                 self.limitrecoveryMSG()
 
                 limitPrice = limitOrder.price
@@ -111,14 +114,16 @@ class Dispatcher:
                 print('\n', position, '\n', limitOrder)
 
             if limitOrder.status == 'Filled' and step < 7:
-                print('\n', position, '\n', limitOrder, 'short limit irder filled')
+                print('\n', position, '\n', limitOrder,
+                      'short limit irder filled')
                 position.Update()
                 position.takeProfit()
                 limitOrder.findncancel()
                 step += 1
 
                 limitQty = baseDepo * self.valueMap[step + 1]
-                limitPrice = marketOrder.price * (1 + self.stepMap[step + 1] / 100)
+                limitPrice = marketOrder.price * \
+                    (1 + self.stepMap[step + 1] / 100)
                 limitOrder = ShortLimitOrder(self.cl, self.symbol)
                 limitOrder.open(position.qty / limitPrice, limitPrice)
                 limitOrder.Update()
@@ -131,7 +136,6 @@ class Dispatcher:
                 print('\n', position, '\n', limitOrder)
                 continue
             await asyncio.sleep(1)
-
 
     async def longAlgo(self):
         startPrice = self.tokenPrice()
@@ -153,7 +157,7 @@ class Dispatcher:
             start_qty = baseDepo * self.valueMap[1]
             # print(start_qty, position.qty)
 
-            print(start_qty, position.price, startPrice, position.qty, 
+            print(start_qty, position.price, startPrice, position.qty,
                   start_qty * startPrice, start_qty * position.price)
             startValueUsdt = start_qty * startPrice
             ratio = position.qty / startValueUsdt
@@ -169,11 +173,11 @@ class Dispatcher:
             marketOrder.open(qty)
             print(marketOrder)
 
-            position = LongPosition(self.cl, self.symbol, self.leverage, self.uid)
+            position = LongPosition(
+                self.cl, self.symbol, self.leverage, self.uid)
             position.Update()
             position.takeProfit()
             print(position)
-
 
         limitQty = baseDepo * self.valueMap[step + 1]
         limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
@@ -197,7 +201,8 @@ class Dispatcher:
                 position.takeProfit()
                 self.tprecoveryMSG()
             if limitOrder.status == 'Cancelled' and step < 7:
-                print('\n', position, '\n', limitOrder, 'short limit irder filled')
+                print('\n', position, '\n', limitOrder,
+                      'short limit irder filled')
                 self.limitrecoveryMSG()
 
                 limitPrice = limitOrder.price
@@ -208,14 +213,16 @@ class Dispatcher:
                 print('\n', position, '\n', limitOrder)
 
             if limitOrder.status == 'Filled' and step < 7:
-                print('\n', position, '\n', limitOrder, 'long limit irder filled')
+                print('\n', position, '\n', limitOrder,
+                      'long limit irder filled')
                 position.Update()
                 position.takeProfit()
                 limitOrder.findncancel()
                 step += 1
 
                 limitQty = baseDepo * self.valueMap[step + 1]
-                limitPrice = marketOrder.price * (1 - self.stepMap[step + 1] / 100)
+                limitPrice = marketOrder.price * \
+                    (1 - self.stepMap[step + 1] / 100)
                 limitOrder = LongLimitOrder(self.cl, self.symbol)
                 limitOrder.open(position.qty / limitPrice, limitPrice)
                 limitOrder.Update()
@@ -240,6 +247,7 @@ class Dispatcher:
             except BaseException as e:
                 print(e)
             print('Short Algo ended')
+            await asyncio.sleep(1)
 
             self.checkPnL("Buy")
 
@@ -255,12 +263,13 @@ class Dispatcher:
             except BaseException as e:
                 print(e)
             print('Long Algo ended')
+            await asyncio.sleep(1)
 
             self.checkPnL("Sell")
 
-
     def checkPnL(self, side):
-        closedPnL = self.cl.get_closed_PnL_symbol(self.symbol)['result']['list']
+        closedPnL = self.cl.get_closed_PnL_symbol(self.symbol)[
+            'result']['list']
         for pos in closedPnL:
             if pos['side'] == side:
                 pnlvalue = float(pos['closedPnl'])
@@ -274,10 +283,10 @@ class Dispatcher:
                     }
                     import json
                     import time
-                    
+
                     t = time.time()
                     with open('main/tgmsgs/' + str(t), "w") as fp:
-                        json.dump(tgmsg , fp)
+                        json.dump(tgmsg, fp)
                     break
                 break
 
@@ -289,10 +298,10 @@ class Dispatcher:
         }
         import json
         import time
-                    
+
         t = time.time()
         with open('main/tgmsgs/' + str(t), "w") as fp:
-            json.dump(tgmsg , fp)
+            json.dump(tgmsg, fp)
 
     def limitrecoveryMSG(self):
         tgmsg = {
@@ -302,10 +311,10 @@ class Dispatcher:
         }
         import json
         import time
-                    
+
         t = time.time()
         with open('main/tgmsgs/' + str(t), "w") as fp:
-            json.dump(tgmsg , fp)
+            json.dump(tgmsg, fp)
 
     def geventEngineStart(self):
         import gevent
@@ -325,4 +334,3 @@ class Dispatcher:
 
         await task1
         await task2
-
